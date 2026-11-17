@@ -1,0 +1,30 @@
+name: Remove closed PR preview
+
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: vercel-${{ github.event.pull_request.head.repo.id }}-${{ github.event.pull_request.head.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Remove only deployments tagged for this PR
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PREVIEW_PROJECT_ID: ${{ secrets.VERCEL_PREVIEW_PROJECT_ID }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: node .github/scripts/cleanup.mjs

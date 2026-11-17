@@ -7,6 +7,9 @@
     "dev": "vp dev",
     "build": "tsc -b && vp build",
     "lint": "vp lint",
+    "audit": "fallow audit",
+    "doctor": "react-doctor . --yes --json --no-score --blocking error",
+    "test": "node --test",
     "preview": "vp preview",
     "prepare": "vp config"
   },
@@ -23,6 +26,8 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "babel-plugin-react-compiler": "^1.0.0",
+    "fallow": "^3.43.1",
+    "react-doctor": "^0.9.23",
     "typescript": "~7.0.2",
     "vite": "catalog:",
     "vite-plus": "catalog:"
