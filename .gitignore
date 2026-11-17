@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.vercel
 *.local
 
 # Editor directories and files
@@ -30,3 +31,6 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+.vercel
+.env*
