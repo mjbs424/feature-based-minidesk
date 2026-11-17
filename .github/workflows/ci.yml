@@ -1,4 +1,4 @@
-name: Check and deploy
+name: Check and package
 
 on:
   pull_request:
@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@v6
         with:
           version: 12.21.0
@@ -25,28 +27,27 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec vp check
+      - run: pnpm test
+      - run: pnpm run audit
+        timeout-minutes: 5
+      - run: pnpm run doctor
+        timeout-minutes: 5
       - run: pnpm run build
-
-  deploy:
-    name: Deploy to Vercel
-    needs: checks
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-    steps:
-      - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v6
+      - name: Package static build for Vercel
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          RUN_SHA: ${{ github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          mkdir -p bundle/.vercel/output/static
+          cp -a dist/. bundle/.vercel/output/static/
+          printf '{"version":3}\n' > bundle/.vercel/output/config.json
+          node -e 'require("fs").writeFileSync("bundle/manifest.json", JSON.stringify({event:process.env.EVENT_NAME,pr:Number(process.env.PR_NUMBER)||null,sha:process.env.HEAD_SHA,runSha:process.env.RUN_SHA}))'
+      - uses: actions/upload-artifact@v4
         with:
-          version: 12.21.0
-          run_install: false
-      - uses: actions/setup-node@v5
-        with:
-          node-version: "24"
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm dlx vercel@latest pull --yes --environment=${{ github.event_name == 'push' && 'production' || 'preview' }} --token="$VERCEL_TOKEN"
-      - run: pnpm dlx vercel@latest build ${{ github.event_name == 'push' && '--prod' || '' }} --token="$VERCEL_TOKEN"
-      - run: pnpm dlx vercel@latest deploy --prebuilt ${{ github.event_name == 'push' && '--prod' || '' }} --token="$VERCEL_TOKEN"
+          name: vercel-static-build
+          path: bundle/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 3
