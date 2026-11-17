@@ -7,11 +7,15 @@ const previewPattern = /^https:\/\/[a-z0-9.-]+\.vercel\.app\/?$/i;
 const context = "Preview deployment";
 
 function validateRun(env) {
-  const { GITHUB_REPOSITORY: repo, GH_TOKEN: token, RUN_HEAD_SHA: headSha } = env;
-  const state = env.PREVIEW_STATE;
-  if (!/^[\w.-]+\/[\w.-]+$/.test(repo ?? "") || !token || !shaPattern.test(headSha ?? "")) {
+  if (!/^[\w.-]+\/[\w.-]+$/.test(env.GITHUB_REPOSITORY ?? ""))
     throw new Error("Missing trusted GitHub run information");
-  }
+  if (!env.GH_TOKEN) throw new Error("Missing trusted GitHub run information");
+  if (!shaPattern.test(env.RUN_HEAD_SHA ?? ""))
+    throw new Error("Missing trusted GitHub run information");
+}
+
+function validateState(env) {
+  const state = env.PREVIEW_STATE;
   if (!["pending", "success", "failure"].includes(state)) throw new Error("Invalid preview state");
   if (state === "success" && !previewPattern.test(env.PREVIEW_URL ?? "")) {
     throw new Error("Successful preview has no valid deployment URL");
@@ -77,6 +81,7 @@ export async function reportPreviewStatus({
   request = fetch,
 } = {}) {
   validateRun(env);
+  validateState(env);
   const manifest = await loadManifest(read, env.RUN_HEAD_SHA);
   const github = githubClient(env.GITHUB_REPOSITORY, env.GH_TOKEN, request);
   const pr = await github(`/pulls/${manifest.pr}`);
