@@ -4,7 +4,7 @@ set -e
 vp staged
 
 echo "Checking current changes with Fallow..."
-fallow audit --base HEAD
+fallow audit --base HEAD --gate all
 
 echo "Checking staged files with React Doctor..."
 react-doctor . --staged --scope files --yes --verbose --no-score --blocking error

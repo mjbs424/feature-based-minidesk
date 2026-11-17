@@ -10,6 +10,7 @@ permissions:
   contents: read
   pull-requests: write
   issues: write
+  statuses: write
 
 jobs:
   deploy:
@@ -32,9 +33,18 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
           path: bundle
+      - name: Mark preview pending
+        if: github.event.workflow_run.event == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+          PREVIEW_STATE: pending
+        run: node .github/scripts/preview-status.mjs
       - run: npm install --global --ignore-scripts vercel@65.16.0
         working-directory: ${{ runner.temp }}
       - name: Validate, deploy and update PR
+        id: deploy
         env:
           GH_TOKEN: ${{ github.token }}
           VERCEL_TOKEN: ${{ github.event.workflow_run.event == 'push' && secrets.VERCEL_TOKEN || secrets.VERCEL_PREVIEW_TOKEN }}
@@ -45,3 +55,12 @@ jobs:
           RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
         run: node .github/scripts/deploy.mjs
+      - name: Report preview result
+        if: always() && github.event.workflow_run.event == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+          PREVIEW_STATE: ${{ job.status == 'success' && 'success' || 'failure' }}
+          PREVIEW_URL: ${{ steps.deploy.outputs.preview_url }}
+        run: node .github/scripts/preview-status.mjs

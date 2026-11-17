@@ -1,4 +1,4 @@
-import { lstat, readFile, readdir, rm, mkdir, cp, writeFile } from "node:fs/promises";
+import { lstat, readFile, readdir, rm, mkdir, cp, writeFile, appendFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { removePrDeployments, vercel } from "./cleanup.mjs";
@@ -133,6 +133,9 @@ if (runEvent === "pull_request") {
     });
   }
   await removePrDeployments(manifest.pr, deploymentId);
+  if (process.env.GITHUB_OUTPUT) {
+    await appendFile(process.env.GITHUB_OUTPUT, `preview_url=${url}\n`);
+  }
 }
 
 async function lookupDeployment(deploymentUrl) {
