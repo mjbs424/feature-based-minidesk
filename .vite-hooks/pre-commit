@@ -8,3 +8,11 @@ fallow audit --base HEAD --gate all
 
 echo "Checking staged files with React Doctor..."
 react-doctor . --staged --scope files --yes --verbose --no-score --blocking error
+
+if ! git diff --quiet -- package.json pnpm-lock.yaml pnpm-workspace.yaml .github/audit-exceptions.json; then
+  echo "Stage dependency and audit exception changes before committing" >&2
+  exit 1
+fi
+
+echo "Checking dependencies with pnpm audit..."
+node .github/scripts/security-audit.mjs
