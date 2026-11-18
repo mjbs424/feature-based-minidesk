@@ -1,7 +1,14 @@
 #!/usr/bin/env sh
 set -e
 
-vp staged
+staged_before=$(git diff --cached --name-only)
+vp staged --hide-unstaged
+staged_after=$(git diff --cached --name-only)
+if [ "$staged_before" != "$staged_after" ]; then
+  echo "vp staged changed the set of staged files. Review and restage before committing:" >&2
+  git diff --cached --name-only >&2
+  exit 1
+fi
 
 echo "Checking staged changes for secrets with Gitleaks..."
 if ! command -v gitleaks >/dev/null 2>&1; then

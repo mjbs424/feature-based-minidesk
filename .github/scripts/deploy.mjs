@@ -2,6 +2,7 @@ import { lstat, readFile, readdir, rm, mkdir, cp, writeFile, appendFile } from "
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { removePrDeployments, vercel } from "./cleanup.mjs";
+import { assertTrustedBuildOutputConfig } from "./build-output-config.mjs";
 
 const repo = process.env.GITHUB_REPOSITORY;
 const [owner, name] = (repo ?? "").split("/");
@@ -67,8 +68,7 @@ if (runEvent === "pull_request") {
 // Accept only the static Build Output API shape. Never execute artifact content.
 const source = "bundle/.vercel/output";
 const config = JSON.parse(await readFile(`${source}/config.json`, "utf8"));
-if (JSON.stringify(config) !== '{"version":3}')
-  throw new Error("Unexpected build output configuration");
+assertTrustedBuildOutputConfig(config);
 const roots = await readdir(source);
 if (roots.sort().join(",") !== "config.json,static")
   throw new Error("Unexpected build output entries");
