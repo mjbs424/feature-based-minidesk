@@ -41,6 +41,13 @@ jobs:
           RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
           PREVIEW_STATE: pending
         run: node .github/scripts/preview-status.mjs
+      - name: Mark bundle size pending
+        if: github.event.workflow_run.event == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+        run: node .github/scripts/bundle-size.mjs pending
       - run: npm install --global --ignore-scripts vercel@65.16.0
         working-directory: ${{ runner.temp }}
       - name: Validate, deploy and update PR
@@ -64,3 +71,26 @@ jobs:
           PREVIEW_STATE: ${{ job.status == 'success' && 'success' || 'failure' }}
           PREVIEW_URL: ${{ steps.deploy.outputs.preview_url }}
         run: node .github/scripts/preview-status.mjs
+      - uses: pnpm/action-setup@v6
+        if: steps.deploy.outcome == 'success' && github.event.workflow_run.event == 'pull_request'
+        with:
+          version: 12.21.0
+          run_install: false
+      - name: Install size checker
+        if: steps.deploy.outcome == 'success' && github.event.workflow_run.event == 'pull_request'
+        run: pnpm install --frozen-lockfile
+      - name: Report per-file bundle sizes
+        id: bundle_size
+        if: steps.deploy.outcome == 'success' && github.event.workflow_run.event == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+        run: node .github/scripts/bundle-size.mjs check
+      - name: Report interrupted bundle size check
+        if: always() && github.event.workflow_run.event == 'pull_request' && steps.bundle_size.outcome == 'skipped'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+        run: node .github/scripts/bundle-size.mjs failed
