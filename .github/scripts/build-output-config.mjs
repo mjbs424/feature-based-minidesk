@@ -16,8 +16,7 @@ export const secureBuildOutputConfig = {
 };
 
 export function assertTrustedBuildOutputConfig(config) {
-  const actual = JSON.stringify(config);
-  if (actual !== '{"version":3}' && actual !== JSON.stringify(secureBuildOutputConfig)) {
+  if (JSON.stringify(config) !== JSON.stringify(secureBuildOutputConfig)) {
     throw new Error("Unexpected build output configuration");
   }
 }

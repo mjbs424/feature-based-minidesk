@@ -5,8 +5,8 @@ import {
   secureBuildOutputConfig,
 } from "../.github/scripts/build-output-config.mjs";
 
-test("accepts the existing build output while the deployment transition is in progress", () => {
-  assert.doesNotThrow(() => assertTrustedBuildOutputConfig({ version: 3 }));
+test("rejects the old build output without security headers", () => {
+  assert.throws(() => assertTrustedBuildOutputConfig({ version: 3 }), /Unexpected build output/);
 });
 
 test("accepts only the intended security headers on the new build output", () => {
