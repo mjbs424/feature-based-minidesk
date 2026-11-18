@@ -10,6 +10,13 @@ if ! command -v gitleaks >/dev/null 2>&1; then
 fi
 gitleaks git --pre-commit --staged --redact
 
+echo "Checking JavaScript and TypeScript for security findings with Semgrep..."
+if ! command -v semgrep >/dev/null 2>&1; then
+  echo "Semgrep is required for commits. Install Semgrep CLI and make sure semgrep is on PATH." >&2
+  exit 1
+fi
+semgrep scan --config p/javascript --metrics off --error src .github/scripts
+
 echo "Checking current changes with Fallow..."
 fallow audit --base HEAD --gate all
 
