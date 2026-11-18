@@ -8,7 +8,7 @@ export default defineConfig({
     open: true,
   },
   staged: {
-    "*": "vp check --fix",
+    "*": "vp check",
   },
   fmt: {},
   lint: {
