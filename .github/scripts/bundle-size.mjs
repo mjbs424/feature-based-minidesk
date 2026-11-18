@@ -1,8 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import sizeLimit from "size-limit";
-import filePlugin from "@size-limit/file";
 
 const context = "Bundle size";
 const marker = "<!-- minidesk-bundle-size -->";
@@ -20,10 +18,10 @@ async function assets(directory, prefix = "") {
 }
 
 export function stableName(file) {
-  return file.replace(/-[a-zA-Z0-9_-]{8,}(?=\.(?:js|css)$)/, "");
+  return file.replace(/^(.+)-[a-zA-Z0-9_-]{8,}(\.(?:js|css))$/, "$1$2");
 }
 
-export async function measureBundles(root, config, calculate = sizeLimit) {
+export async function measureBundles(root, config, calculate) {
   if (
     !Number.isSafeInteger(config.defaultLimitKB) ||
     config.defaultLimitKB <= 0 ||
@@ -46,8 +44,12 @@ export async function measureBundles(root, config, calculate = sizeLimit) {
   const names = await assets(root);
   if (!names.some((name) => name.endsWith(".js")))
     throw new Error("No JavaScript build assets found");
+  const [{ default: filePlugin }, { default: sizeLimit }] = await Promise.all([
+    import("@size-limit/file"),
+    import("size-limit"),
+  ]);
   const checks = names.map((name) => ({ files: [path.join(root, ...name.split("/"))] }));
-  const sizes = await calculate(filePlugin, { checks });
+  const sizes = await (calculate ?? sizeLimit)(filePlugin, { checks });
   if (sizes.length !== names.length) throw new Error("Incomplete bundle size results");
   const rows = names.map((name, index) => {
     const key = stableName(name);

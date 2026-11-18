@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { measureBundles, stableName } from "../.github/scripts/bundle-size.mjs";
 
 test("checks every nested JS/CSS asset independently and supports stable-name exceptions", async () => {
@@ -40,6 +41,23 @@ test("real Size Limit file plugin measures the built file with Brotli", async ()
     assert.equal(rows.length, 1);
     assert.ok(rows[0].passed);
     assert.equal(stableName(rows[0].name), "entry.js");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("hyphenated asset names keep distinct override keys", () => {
+  assert.equal(stableName("assets/user-profile-AbCd1234.js"), "assets/user-profile.js");
+  assert.equal(stableName("assets/user-settings-XyZ98765.js"), "assets/user-settings.js");
+});
+
+test("pending status module loads without installing measurement dependencies", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "bundle-module-"));
+  try {
+    const source = fileURLToPath(new URL("../.github/scripts/bundle-size.mjs", import.meta.url));
+    const isolated = path.join(root, "bundle-size.mjs");
+    await copyFile(source, isolated);
+    await import(pathToFileURL(isolated).href);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
