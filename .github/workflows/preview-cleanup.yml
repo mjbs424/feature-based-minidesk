@@ -14,7 +14,7 @@ jobs:
       group: vercel-${{ github.event.pull_request.head.repo.id }}-${{ github.event.pull_request.head.ref }}
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           ref: main
           persist-credentials: false
