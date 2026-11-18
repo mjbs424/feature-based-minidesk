@@ -26,6 +26,9 @@ jobs:
           node-version: "24"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Audit dependencies
+        run: node .github/scripts/security-audit.mjs
+        timeout-minutes: 5
       - run: pnpm exec vp check
       - run: pnpm test
       - run: pnpm run audit
