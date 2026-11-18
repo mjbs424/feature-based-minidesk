@@ -26,6 +26,9 @@ jobs:
           GITLEAKS_ENABLE_COMMENTS: "false"
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
           GITLEAKS_ENABLE_SUMMARY: "false"
+      - name: Remove local Gitleaks report
+        if: always()
+        run: rm -f results.sarif
       - uses: pnpm/action-setup@v6
         with:
           version: 12.21.0
