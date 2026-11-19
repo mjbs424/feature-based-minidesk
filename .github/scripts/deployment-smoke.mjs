@@ -35,6 +35,17 @@ async function requestOnOrigin(url, origin, secret, request) {
   throw new Error("Deployment redirected too many times");
 }
 
+async function checkAsset(asset, origin, secret, request) {
+  const response = await requestOnOrigin(asset, origin, secret, request);
+  const contentType = response.headers.get("content-type") ?? "";
+  const expected = asset.pathname.endsWith(".css")
+    ? /^text\/css\b/i
+    : /^(?:text|application)\/javascript\b/i;
+  if (!expected.test(contentType))
+    throw new Error(`Unexpected asset content type: ${asset.pathname}`);
+  await response.arrayBuffer();
+}
+
 export async function smokeDeployment(value, secret, request = fetch) {
   const url = deploymentOrigin(value);
   const response = await requestOnOrigin(url, url.origin, secret, request);
@@ -54,7 +65,7 @@ export async function smokeDeployment(value, secret, request = fetch) {
   )
     throw new Error("Deployment page has no built JavaScript or stylesheet");
   for (const asset of assets) {
-    await requestOnOrigin(asset, url.origin, secret, request);
+    await checkAsset(asset, url.origin, secret, request);
   }
   console.log(`Smoke test passed: application page and ${assets.length} assets`);
 }

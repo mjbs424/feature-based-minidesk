@@ -11,7 +11,13 @@ test("checks the deployed application and its built assets", async () => {
   await smokeDeployment(url, "test-secret", async (target, options) => {
     seen.push([target.pathname, options.headers["x-vercel-protection-bypass"]]);
     return new Response(target.pathname === "/" ? html : "built asset", {
-      headers: { "content-type": target.pathname === "/" ? "text/html" : "text/plain" },
+      headers: {
+        "content-type": target.pathname.endsWith(".js")
+          ? "text/javascript"
+          : target.pathname.endsWith(".css")
+            ? "text/css"
+            : "text/html",
+      },
     });
   });
   assert.deepEqual(seen, [
@@ -19,6 +25,28 @@ test("checks the deployed application and its built assets", async () => {
     ["/assets/app-123.js", "test-secret"],
     ["/assets/app-123.css", "test-secret"],
   ]);
+});
+
+test("rejects an HTML fallback for an asset and an interrupted asset transfer", async () => {
+  const htmlAsset = async (target) =>
+    new Response(target.pathname === "/" ? html : "<h1>Fallback</h1>", {
+      headers: { "content-type": "text/html" },
+    });
+  await assert.rejects(smokeDeployment(url, "", htmlAsset), /Unexpected asset content type/);
+
+  const interruptedAsset = async (target) => {
+    if (target.pathname === "/")
+      return new Response(html, { headers: { "content-type": "text/html" } });
+    return new Response(
+      new ReadableStream({
+        start(controller) {
+          controller.error(new Error("Asset transfer interrupted"));
+        },
+      }),
+      { headers: { "content-type": "text/javascript" } },
+    );
+  };
+  await assert.rejects(smokeDeployment(url, "", interruptedAsset), /Asset transfer interrupted/);
 });
 
 test("rejects an external redirect without sending the bypass secret to that host", async () => {
