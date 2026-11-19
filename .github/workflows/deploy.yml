@@ -172,7 +172,7 @@ jobs:
           PREVIEW_URL: ${{ needs.deploy.outputs.preview_url }}
         run: node .github/scripts/lighthouse-report.mjs check
       - name: Report interrupted Lighthouse check
-        if: always() && steps.lighthouse_scores.outcome != 'success'
+        if: always() && steps.lighthouse_scores.outcome == 'skipped'
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
