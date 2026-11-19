@@ -74,4 +74,17 @@ test("reports pre-publication errors without overwriting a published score resul
     },
   );
   assert.deepEqual(published, ["failure", "score result"]);
+  await assert.rejects(
+    publishCheckedLighthouse(
+      async (onStatusPublished) => {
+        onStatusPublished();
+        throw new Error("PR comment update failed");
+      },
+      async () => {
+        published.push("unexpected fallback");
+      },
+    ),
+    /PR comment update failed/,
+  );
+  assert.deepEqual(published, ["failure", "score result"]);
 });

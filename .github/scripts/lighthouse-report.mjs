@@ -60,7 +60,7 @@ async function loadScores(previewUrl) {
   return summarizeLighthouse(results, previewUrl);
 }
 
-async function check(env, manifest) {
+async function check(env, manifest, onStatusPublished) {
   if (!/^https:\/\/[a-z0-9.-]+\.vercel\.app\/?$/i.test(env.PREVIEW_URL ?? ""))
     throw new Error("Invalid preview URL");
   const scores = await loadScores(env.PREVIEW_URL);
@@ -86,16 +86,19 @@ async function check(env, manifest) {
       ? `${failed.length} Lighthouse category(s) below minimum`
       : "Lighthouse scores meet minimums",
     body,
-    options,
+    { ...options, onStatusPublished },
   );
   if (failed.length) process.exitCode = 1;
 }
 
 export async function publishCheckedLighthouse(runCheck, publishFailure) {
+  let statusPublished = false;
   try {
-    await runCheck();
+    await runCheck(() => {
+      statusPublished = true;
+    });
   } catch (error) {
-    await publishFailure();
+    if (!statusPublished) await publishFailure();
     throw error;
   }
 }
@@ -119,7 +122,7 @@ async function main() {
     );
   if (action === "check")
     return publishCheckedLighthouse(
-      () => check(env, manifest),
+      (onStatusPublished) => check(env, manifest, onStatusPublished),
       () =>
         report(
           env,
