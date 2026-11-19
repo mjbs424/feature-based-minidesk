@@ -16,6 +16,8 @@ jobs:
   deploy:
     if: github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.event == 'pull_request' || github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
+    outputs:
+      preview_url: ${{ steps.deploy.outputs.preview_url }}
     concurrency:
       group: vercel-${{ github.event.workflow_run.head_repository.id }}-${{ github.event.workflow_run.head_branch }}
       cancel-in-progress: false
@@ -94,3 +96,80 @@ jobs:
           RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
         run: node .github/scripts/bundle-size.mjs failed
+      - name: Mark Lighthouse pending
+        if: always() && steps.deploy.outcome == 'success' && github.event.workflow_run.event == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+        run: node .github/scripts/lighthouse-report.mjs pending
+
+  lighthouse:
+    needs: deploy
+    if: always() && github.event.workflow_run.event == 'pull_request' && needs.deploy.outputs.preview_url != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Install Lighthouse CI
+        run: npm install --global --ignore-scripts @lhci/cli@0.16.0
+      - name: Measure preview with Lighthouse
+        env:
+          PREVIEW_URL: ${{ needs.deploy.outputs.preview_url }}
+        run: lhci collect --url="$PREVIEW_URL" --numberOfRuns=3 --settings.chromeFlags="--no-sandbox"
+        timeout-minutes: 15
+      - name: Save Lighthouse reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-preview-reports
+          path: .lighthouseci/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  lighthouse_report:
+    needs: [deploy, lighthouse]
+    if: always() && github.event.workflow_run.event == 'pull_request' && needs.deploy.outputs.preview_url != ''
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: write
+      issues: write
+      statuses: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - uses: actions/download-artifact@v4
+        with:
+          name: vercel-static-build
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          path: bundle
+      - name: Download Lighthouse reports
+        if: needs.lighthouse.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: lighthouse-preview-reports
+          path: .lighthouseci
+      - name: Report Lighthouse scores
+        id: lighthouse_scores
+        if: needs.lighthouse.result == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+          PREVIEW_URL: ${{ needs.deploy.outputs.preview_url }}
+        run: node .github/scripts/lighthouse-report.mjs check
+      - name: Report interrupted Lighthouse check
+        if: always() && steps.lighthouse_scores.outcome != 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+        run: node .github/scripts/lighthouse-report.mjs failed
