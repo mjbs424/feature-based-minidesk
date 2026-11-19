@@ -18,7 +18,8 @@ export default defineConfig({
       { name: "boundaries", specifier: "eslint-plugin-boundaries" },
     ],
     settings: {
-      "boundaries/include": ["src/**/*"],
+      // Resolved package files must be included so they are not mistaken for ignored local files.
+      "boundaries/include": ["src/**/*", "node_modules/**/*", "node_modules/.pnpm/**/*"],
       "boundaries/elements": [
         { type: "app", pattern: "src/app", partialMatch: false },
         { type: "routes", pattern: "src/routes", partialMatch: false },
@@ -45,6 +46,7 @@ export default defineConfig({
       "vite-plus/prefer-vite-plus-imports": "error",
       "boundaries/no-unknown-files": "error",
       "boundaries/no-unknown-dependencies": "error",
+      "boundaries/no-ignored-dependencies": "error",
       "boundaries/dependencies": [
         "error",
         {
