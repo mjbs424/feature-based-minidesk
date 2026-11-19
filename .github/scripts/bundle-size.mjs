@@ -105,7 +105,7 @@ function isCurrent(pr, manifest, env) {
   );
 }
 
-async function postStatus(request, env, manifest, pr, state, description) {
+async function postStatus(request, env, manifest, pr, state, description, statusContext) {
   const shas = [manifest.sha];
   if (manifest.runSha !== manifest.sha && manifest.runSha === pr.merge_commit_sha) {
     shas.push(manifest.runSha);
@@ -115,7 +115,7 @@ async function postStatus(request, env, manifest, pr, state, description) {
       method: "POST",
       body: JSON.stringify({
         state,
-        context,
+        context: statusContext,
         description: description.slice(0, 140),
         target_url: `https://github.com/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}`,
       }),
@@ -123,11 +123,13 @@ async function postStatus(request, env, manifest, pr, state, description) {
   }
 }
 
-async function updateComment(request, prNumber, body) {
+async function updateComment(request, prNumber, body, commentMarker) {
   let previous;
   for (let page = 1; page < 20; page++) {
     const batch = await request(`/issues/${prNumber}/comments?per_page=100&page=${page}`);
-    previous = batch.find(({ user, body: text }) => user?.type === "Bot" && text?.includes(marker));
+    previous = batch.find(
+      ({ user, body: text }) => user?.type === "Bot" && text?.includes(commentMarker),
+    );
     if (previous || batch.length < 100) break;
   }
   const destination = previous ? `/issues/comments/${previous.id}` : `/issues/${prNumber}/comments`;
@@ -137,7 +139,7 @@ async function updateComment(request, prNumber, body) {
   });
 }
 
-async function report(env, manifest, state, description, body) {
+export async function report(env, manifest, state, description, body, options = {}) {
   validateMetadata(env, manifest);
   const request = githubClient(env);
   const pr = await request(`/pulls/${manifest.pr}`);
@@ -145,8 +147,8 @@ async function report(env, manifest, state, description, body) {
     console.log("PR changed; skipping obsolete bundle size report");
     return;
   }
-  await postStatus(request, env, manifest, pr, state, description);
-  if (body) await updateComment(request, manifest.pr, body);
+  await postStatus(request, env, manifest, pr, state, description, options.context ?? context);
+  if (body) await updateComment(request, manifest.pr, body, options.marker ?? marker);
 }
 
 function summary(rows, sha) {

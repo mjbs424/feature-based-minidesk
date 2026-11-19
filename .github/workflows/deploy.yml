@@ -94,3 +94,45 @@ jobs:
           RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
         run: node .github/scripts/bundle-size.mjs failed
+      - name: Mark Lighthouse pending
+        if: always() && steps.deploy.outcome == 'success' && github.event.workflow_run.event == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+        run: node .github/scripts/lighthouse-report.mjs pending
+      - name: Install Lighthouse CI
+        if: always() && steps.deploy.outcome == 'success' && github.event.workflow_run.event == 'pull_request'
+        run: npm install --global --ignore-scripts @lhci/cli@0.16.0
+      - name: Measure preview with Lighthouse
+        id: lighthouse_collect
+        if: always() && steps.deploy.outcome == 'success' && github.event.workflow_run.event == 'pull_request'
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.preview_url }}
+        run: lhci collect --url="$PREVIEW_URL" --numberOfRuns=3 --settings.chromeFlags="--no-sandbox"
+        timeout-minutes: 15
+      - name: Save Lighthouse reports
+        if: always() && steps.lighthouse_collect.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-preview-reports
+          path: .lighthouseci/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+      - name: Report Lighthouse scores
+        id: lighthouse_report
+        if: always() && steps.lighthouse_collect.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+          PREVIEW_URL: ${{ steps.deploy.outputs.preview_url }}
+        run: node .github/scripts/lighthouse-report.mjs check
+      - name: Report interrupted Lighthouse check
+        if: always() && github.event.workflow_run.event == 'pull_request' && steps.lighthouse_report.outcome != 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+        run: node .github/scripts/lighthouse-report.mjs failed
