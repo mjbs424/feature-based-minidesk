@@ -64,6 +64,12 @@ jobs:
           RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
         run: node .github/scripts/deploy.mjs
+      - name: Smoke test deployed site
+        if: steps.deploy.outcome == 'success' && steps.deploy.outputs.deployment_url != ''
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment_url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ github.event.workflow_run.event == 'pull_request' && secrets.VERCEL_PREVIEW_AUTOMATION_BYPASS_SECRET || '' }}
+        run: node .github/scripts/deployment-smoke.mjs
       - name: Report preview result
         if: always() && github.event.workflow_run.event == 'pull_request'
         env:
@@ -97,7 +103,7 @@ jobs:
           RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
         run: node .github/scripts/bundle-size.mjs failed
       - name: Mark Lighthouse pending
-        if: always() && steps.deploy.outcome == 'success' && github.event.workflow_run.event == 'pull_request'
+        if: always() && job.status == 'success' && steps.deploy.outcome == 'success' && github.event.workflow_run.event == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
@@ -106,7 +112,7 @@ jobs:
 
   lighthouse:
     needs: deploy
-    if: always() && github.event.workflow_run.event == 'pull_request' && needs.deploy.outputs.preview_url != ''
+    if: always() && needs.deploy.result == 'success' && github.event.workflow_run.event == 'pull_request' && needs.deploy.outputs.preview_url != ''
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -134,7 +140,7 @@ jobs:
 
   lighthouse_report:
     needs: [deploy, lighthouse]
-    if: always() && github.event.workflow_run.event == 'pull_request' && needs.deploy.outputs.preview_url != ''
+    if: always() && needs.deploy.result == 'success' && github.event.workflow_run.event == 'pull_request' && needs.deploy.outputs.preview_url != ''
     runs-on: ubuntu-latest
     permissions:
       actions: read
