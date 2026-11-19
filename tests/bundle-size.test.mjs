@@ -4,7 +4,27 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { measureBundles, stableName } from "../.github/scripts/bundle-size.mjs";
+import {
+  enforceTrustedLimits,
+  measureBundles,
+  stableName,
+} from "../.github/scripts/bundle-size.mjs";
+
+test("a PR may tighten bundle limits but cannot relax the trusted policy", () => {
+  const row = { key: "assets/index.js", limitKB: 20 };
+  const trusted = { defaultLimitKB: 200, overrides: {} };
+  assert.doesNotThrow(() => enforceTrustedLimits([row], trusted));
+  assert.throws(
+    () => enforceTrustedLimits([{ ...row, limitKB: 300 }], trusted),
+    /exceeds the trusted policy/,
+  );
+  assert.doesNotThrow(() =>
+    enforceTrustedLimits([{ ...row, limitKB: 250 }], {
+      defaultLimitKB: 200,
+      overrides: { "assets/index.js": 300 },
+    }),
+  );
+});
 
 test("checks every nested JS/CSS asset independently and supports stable-name exceptions", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "bundle-size-"));
