@@ -18,7 +18,7 @@ export default defineConfig({
       { name: "boundaries", specifier: "eslint-plugin-boundaries" },
     ],
     settings: {
-      "boundaries/include": ["src/**/*.{ts,tsx,js,jsx,mts,cts,mjs,cjs}"],
+      "boundaries/include": ["src/**/*"],
       "boundaries/elements": [
         { type: "app", pattern: "src/app", partialMatch: false },
         { type: "routes", pattern: "src/routes", partialMatch: false },
