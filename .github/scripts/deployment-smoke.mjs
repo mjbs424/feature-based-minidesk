@@ -1,6 +1,12 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+export function smokeTarget(event, deploymentUrl) {
+  if (event === "push") return "https://feature-based-minidesk.vercel.app/";
+  if (event === "pull_request") return deploymentUrl;
+  throw new Error("Unsupported smoke test event");
+}
+
 function deploymentOrigin(value) {
   const url = new URL(value);
   if (
@@ -29,7 +35,10 @@ async function requestOnOrigin(url, origin, secret, request) {
       url = new URL(location, url);
       continue;
     }
-    if (response.status !== 200) throw new Error(`Deployment returned HTTP ${response.status}`);
+    if (response.status !== 200)
+      throw new Error(
+        `Deployment returned HTTP ${response.status} at ${url.origin}${url.pathname}`,
+      );
     return response;
   }
   throw new Error("Deployment redirected too many times");
@@ -74,5 +83,8 @@ export async function smokeDeployment(value, secret, request = fetch) {
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
-  await smokeDeployment(process.env.DEPLOYMENT_URL, process.env.VERCEL_AUTOMATION_BYPASS_SECRET);
+  await smokeDeployment(
+    smokeTarget(process.env.RUN_EVENT, process.env.DEPLOYMENT_URL),
+    process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+  );
 }

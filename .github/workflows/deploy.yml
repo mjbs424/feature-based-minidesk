@@ -67,6 +67,7 @@ jobs:
       - name: Smoke test deployed site
         if: steps.deploy.outcome == 'success' && steps.deploy.outputs.deployment_url != ''
         env:
+          RUN_EVENT: ${{ github.event.workflow_run.event }}
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment_url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ github.event.workflow_run.event == 'pull_request' && secrets.VERCEL_PREVIEW_AUTOMATION_BYPASS_SECRET || '' }}
         run: node .github/scripts/deployment-smoke.mjs
