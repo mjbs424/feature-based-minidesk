@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { summarizeLighthouse } from "../.github/scripts/lighthouse-report.mjs";
+import { evaluateLighthouse, summarizeLighthouse } from "../.github/scripts/lighthouse-report.mjs";
 
 const preview = "https://example.vercel.app/";
 const result = (score, url = preview) => ({
@@ -26,5 +26,22 @@ test("rejects incomplete reports and redirects outside the preview", () => {
     () =>
       summarizeLighthouse([result(1), result(1, "https://login.example.com/"), result(1)], preview),
     /did not measure the preview page/,
+  );
+});
+
+test("strict PR SEO threshold fails while trusted baseline passes", () => {
+  const scores = { performance: 100, accessibility: 91, "best-practices": 100, seo: 45 };
+  const trusted = { performance: 90, accessibility: 90, "best-practices": 90, seo: 40 };
+  const strict = { ...trusted, seo: 70 };
+  assert.deepEqual(
+    evaluateLighthouse(scores, strict, trusted)
+      .filter((row) => !row.passed)
+      .map((row) => row.name),
+    ["seo"],
+  );
+  assert.ok(evaluateLighthouse(scores, trusted, trusted).every((row) => row.passed));
+  assert.throws(
+    () => evaluateLighthouse(scores, { ...trusted, performance: 80 }, trusted),
+    /below the trusted policy/,
   );
 });

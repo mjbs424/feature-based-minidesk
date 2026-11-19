@@ -29,6 +29,28 @@ export function summarizeLighthouse(results, previewUrl) {
   );
 }
 
+export function evaluateLighthouse(scores, proposed, trusted) {
+  for (const config of [proposed, trusted]) {
+    if (
+      Object.keys(config).sort().join(",") !== [...categories].sort().join(",") ||
+      categories.some(
+        (name) => !Number.isInteger(config[name]) || config[name] < 0 || config[name] > 100,
+      )
+    )
+      throw new Error("Invalid Lighthouse thresholds");
+  }
+  return categories.map((name) => {
+    if (proposed[name] < trusted[name])
+      throw new Error(`Lighthouse threshold is below the trusted policy: ${name}`);
+    return {
+      name,
+      score: scores[name],
+      minimum: proposed[name],
+      passed: scores[name] >= proposed[name],
+    };
+  });
+}
+
 async function loadScores(previewUrl) {
   const directory = ".lighthouseci";
   const files = (await readdir(directory)).filter((name) => /^lhr-.*\.json$/.test(name));
@@ -36,6 +58,37 @@ async function loadScores(previewUrl) {
     files.map(async (name) => JSON.parse(await readFile(path.join(directory, name), "utf8"))),
   );
   return summarizeLighthouse(results, previewUrl);
+}
+
+async function check(env, manifest) {
+  if (!/^https:\/\/[a-z0-9.-]+\.vercel\.app\/?$/i.test(env.PREVIEW_URL ?? ""))
+    throw new Error("Invalid preview URL");
+  const scores = await loadScores(env.PREVIEW_URL);
+  const proposed = JSON.parse(await readFile("bundle/lighthouse-thresholds.json", "utf8"));
+  const trusted = JSON.parse(await readFile(".github/lighthouse-thresholds.json", "utf8"));
+  const results = evaluateLighthouse(scores, proposed, trusted);
+  const failed = results.filter((row) => !row.passed);
+  const rows = results
+    .map(
+      (row) => `| ${row.name} | ${row.score} | ${row.minimum} | ${row.passed ? "Pass" : "Fail"} |`,
+    )
+    .join("\n");
+  const body =
+    `${marker}\n### Lighthouse CI\n\nPreview: ${env.PREVIEW_URL}\n` +
+    `Commit: \`${manifest.sha}\`\n\nMedian of three mobile runs:\n\n` +
+    `| Category | Score / 100 | Minimum | Result |\n| --- | ---: | ---: | :---: |\n${rows}\n\n` +
+    `${failed.length} category(s) below the minimum. Download the full reports from the deployment workflow artifacts.`;
+  await report(
+    env,
+    manifest,
+    failed.length ? "failure" : "success",
+    failed.length
+      ? `${failed.length} Lighthouse category(s) below minimum`
+      : "Lighthouse scores meet minimums",
+    body,
+    options,
+  );
+  if (failed.length) process.exitCode = 1;
 }
 
 async function main() {
@@ -55,24 +108,8 @@ async function main() {
       null,
       options,
     );
-  if (action !== "check") throw new Error("Expected pending, check or failed");
-  if (!/^https:\/\/[a-z0-9.-]+\.vercel\.app\/?$/i.test(env.PREVIEW_URL ?? ""))
-    throw new Error("Invalid preview URL");
-  const scores = await loadScores(env.PREVIEW_URL);
-  const rows = categories.map((name) => `| ${name} | ${scores[name]} |`).join("\n");
-  const body =
-    `${marker}\n### Lighthouse CI baseline\n\nPreview: ${env.PREVIEW_URL}\n` +
-    `Commit: \`${manifest.sha}\`\n\nMedian of three mobile runs:\n\n` +
-    `| Category | Score / 100 |\n| --- | ---: |\n${rows}\n\n` +
-    `This baseline reports scores without enforcing score thresholds. Download the full reports from the deployment workflow artifacts.`;
-  await report(
-    env,
-    manifest,
-    "success",
-    `Baseline: performance ${scores.performance}/100`,
-    body,
-    options,
-  );
+  if (action === "check") return check(env, manifest);
+  throw new Error("Expected pending, check or failed");
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
