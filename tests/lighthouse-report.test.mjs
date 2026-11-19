@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { evaluateLighthouse, summarizeLighthouse } from "../.github/scripts/lighthouse-report.mjs";
+import {
+  evaluateLighthouse,
+  publishCheckedLighthouse,
+  summarizeLighthouse,
+} from "../.github/scripts/lighthouse-report.mjs";
 
 const preview = "https://example.vercel.app/";
 const result = (score, url = preview) => ({
@@ -44,4 +48,30 @@ test("strict PR SEO threshold fails while trusted baseline passes", () => {
     () => evaluateLighthouse(scores, { ...trusted, performance: 80 }, trusted),
     /below the trusted policy/,
   );
+});
+
+test("reports pre-publication errors without overwriting a published score result", async () => {
+  const published = [];
+  const error = new Error("Threshold is below the trusted policy");
+  await assert.rejects(
+    publishCheckedLighthouse(
+      async () => {
+        throw error;
+      },
+      async () => {
+        published.push("failure");
+      },
+    ),
+    error,
+  );
+  assert.deepEqual(published, ["failure"]);
+  await publishCheckedLighthouse(
+    async () => {
+      published.push("score result");
+    },
+    async () => {
+      published.push("unexpected fallback");
+    },
+  );
+  assert.deepEqual(published, ["failure", "score result"]);
 });

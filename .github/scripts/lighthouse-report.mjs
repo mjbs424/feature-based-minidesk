@@ -91,6 +91,15 @@ async function check(env, manifest) {
   if (failed.length) process.exitCode = 1;
 }
 
+export async function publishCheckedLighthouse(runCheck, publishFailure) {
+  try {
+    await runCheck();
+  } catch (error) {
+    await publishFailure();
+    throw error;
+  }
+}
+
 async function main() {
   const env = process.env;
   const manifest = JSON.parse(await readFile("bundle/manifest.json", "utf8"));
@@ -108,7 +117,19 @@ async function main() {
       null,
       options,
     );
-  if (action === "check") return check(env, manifest);
+  if (action === "check")
+    return publishCheckedLighthouse(
+      () => check(env, manifest),
+      () =>
+        report(
+          env,
+          manifest,
+          "failure",
+          "Lighthouse policy or report rejected",
+          `${marker}\n### Lighthouse CI\n\nPolicy or report validation failed. See workflow logs.`,
+          options,
+        ),
+    );
   throw new Error("Expected pending, check or failed");
 }
 
