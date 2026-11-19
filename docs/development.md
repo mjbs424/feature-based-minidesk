@@ -44,6 +44,6 @@ Pull requests deploy the artifact to an isolated Vercel Preview. The workflow sm
 
 ## Dependency exceptions and security findings
 
-`.github/audit-exceptions.json` maps package names to temporary reasons and is currently empty. Add an exception only after reviewing the specific advisory and documenting the reason. An unexcepted high or critical advisory blocks the check; an excepted one remains a warning. The security script also highlights an available patch. Remove exceptions after fixing the affected dependency.
+`.github/audit-exceptions.json` maps package names to temporary reasons and is currently empty. Add an exception only after reviewing the specific advisory and documenting the reason. Because exceptions are keyed by package name, each one applies to every high or critical advisory for that package, including advisories discovered later. Reviewers must monitor all advisories for excepted packages. An unexcepted high or critical advisory blocks the check; an excepted one remains a warning. The security script also highlights an available patch. Remove exceptions after fixing the affected dependency.
 
 Dependency Review is report-only. For a real leaked secret, revoke or rotate it and address its presence in Git history. CodeQL runs on pull requests and `main`. Later security decisions tracked in T21 and T26 are outside this guide's current workflow.
