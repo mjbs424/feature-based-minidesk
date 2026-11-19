@@ -1,4 +1,4 @@
 {
-  "defaultLimitKB": 200,
+  "defaultLimitKB": 20,
   "overrides": {}
 }
