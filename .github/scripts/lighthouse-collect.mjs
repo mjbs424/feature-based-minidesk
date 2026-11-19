@@ -32,7 +32,10 @@ export function collectConfig(previewUrl) {
       collect: {
         url: [previewUrl],
         numberOfRuns: 3,
-        puppeteerScript: fileURLToPath(new URL("./lighthouse-cookie.cjs", import.meta.url)),
+        puppeteerScript: path.relative(
+          process.cwd(),
+          fileURLToPath(new URL("./lighthouse-cookie.cjs", import.meta.url)),
+        ),
         puppeteerLaunchOptions: { args: ["--no-sandbox", "--disable-setuid-sandbox"] },
         settings: {
           chromeFlags: "--no-sandbox",

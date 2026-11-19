@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
+import path from "node:path";
 import test from "node:test";
 import {
   bootstrapBypassCookie,
@@ -13,6 +15,8 @@ test("collects the protected preview without page-wide headers", () => {
   assert.equal(config.ci.collect.numberOfRuns, 3);
   assert.equal(config.ci.collect.settings.extraHeaders, undefined);
   assert.equal(config.ci.collect.settings.disableStorageReset, true);
+  assert.equal(path.isAbsolute(config.ci.collect.puppeteerScript), false);
+  assert.equal(existsSync(path.join(process.cwd(), config.ci.collect.puppeteerScript)), true);
   assert.throws(() => collectConfig("https://vercel.com/login"), /Preview URL/);
 });
 
