@@ -37,11 +37,14 @@ async function requestOnOrigin(url, origin, secret, request) {
 
 async function checkAsset(asset, origin, secret, request) {
   const response = await requestOnOrigin(asset, origin, secret, request);
-  const contentType = response.headers.get("content-type") ?? "";
+  const contentType = (response.headers.get("content-type") ?? "")
+    .split(";", 1)[0]
+    .trim()
+    .toLowerCase();
   const expected = asset.pathname.endsWith(".css")
-    ? /^text\/css\b/i
-    : /^(?:text|application)\/javascript\b/i;
-  if (!expected.test(contentType))
+    ? ["text/css"]
+    : ["text/javascript", "application/javascript"];
+  if (!expected.includes(contentType))
     throw new Error(`Unexpected asset content type: ${asset.pathname}`);
   await response.arrayBuffer();
 }

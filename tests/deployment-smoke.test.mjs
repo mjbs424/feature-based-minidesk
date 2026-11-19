@@ -13,9 +13,9 @@ test("checks the deployed application and its built assets", async () => {
     return new Response(target.pathname === "/" ? html : "built asset", {
       headers: {
         "content-type": target.pathname.endsWith(".js")
-          ? "text/javascript"
+          ? "text/javascript; charset=utf-8"
           : target.pathname.endsWith(".css")
-            ? "text/css"
+            ? "text/css; charset=utf-8"
             : "text/html",
       },
     });
@@ -47,6 +47,30 @@ test("rejects an HTML fallback for an asset and an interrupted asset transfer", 
     );
   };
   await assert.rejects(smokeDeployment(url, "", interruptedAsset), /Asset transfer interrupted/);
+});
+
+test("rejects MIME subtype suffixes on built assets", async () => {
+  for (const [extension, contentType] of [
+    [".js", "text/javascript+json"],
+    [".css", "text/css-invalid"],
+  ]) {
+    await assert.rejects(
+      smokeDeployment(url, "", async (target) => {
+        const type =
+          target.pathname === "/"
+            ? "text/html"
+            : target.pathname.endsWith(extension)
+              ? contentType
+              : target.pathname.endsWith(".js")
+                ? "text/javascript"
+                : "text/css";
+        return new Response(target.pathname === "/" ? html : "asset", {
+          headers: { "content-type": type },
+        });
+      }),
+      /Unexpected asset content type/,
+    );
+  }
 });
 
 test("rejects an external redirect without sending the bypass secret to that host", async () => {
