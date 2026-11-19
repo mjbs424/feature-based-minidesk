@@ -116,7 +116,7 @@ jobs:
           ref: main
           persist-credentials: false
       - name: Install Lighthouse CI
-        run: npm install --global --ignore-scripts @lhci/cli@0.16.0
+        run: npm install --global --ignore-scripts @lhci/cli@0.16.0 puppeteer@24.29.0
       - name: Measure preview with Lighthouse
         env:
           PREVIEW_URL: ${{ needs.deploy.outputs.preview_url }}
