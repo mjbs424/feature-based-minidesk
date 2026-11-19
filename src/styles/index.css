@@ -4,7 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-:root {
+.starter-page {
   --text: #6b6375;
   --text-h: #08060d;
   --bg: #fff;
@@ -33,7 +33,9 @@
   @media (max-width: 1024px) {
     font-size: 16px;
   }
+}
 
+:root {
   --background: oklch(1 0 0);
 
   --border: oklch(0.922 0 0);
@@ -100,7 +102,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  .starter-page {
     --text: #9ca3af;
     --text-h: #f3f4f6;
     --bg: #16171d;
@@ -118,12 +120,14 @@
   }
 }
 
-#root {
+.starter-page {
   width: 1126px;
   max-width: 100%;
   margin: 0 auto;
   text-align: center;
   border-inline: 1px solid var(--starter-border);
+  background: var(--bg);
+  color: var(--text);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -132,18 +136,16 @@
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
 }
 
-h1,
-h2 {
+.starter-page h1,
+.starter-page h2 {
   font-family: var(--heading);
   font-weight: 500;
   color: var(--text-h);
 }
 
-h1 {
+.starter-page h1 {
   font-size: 56px;
   letter-spacing: -1.68px;
   margin: 32px 0;
@@ -152,7 +154,7 @@ h1 {
     margin: 20px 0;
   }
 }
-h2 {
+.starter-page h2 {
   font-size: 24px;
   line-height: 118%;
   letter-spacing: -0.24px;
@@ -161,19 +163,19 @@ h2 {
     font-size: 20px;
   }
 }
-p {
+.starter-page p {
   margin: 0;
 }
 
-code,
-.counter {
+.starter-page code,
+.starter-page .counter {
   font-family: var(--mono);
   display: inline-flex;
   border-radius: 4px;
   color: var(--text-h);
 }
 
-code {
+.starter-page code {
   font-size: 15px;
   line-height: 135%;
   padding: 4px 8px;
