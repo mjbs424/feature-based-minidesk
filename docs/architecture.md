@@ -34,6 +34,37 @@ openapi/                       # Previously proposed schema source; decide in T0
 Keep unit and component tests next to the code they exercise. The `tests/`
 directory is for flows that span features or run in a browser.
 
+## Ownership and naming
+
+`src/app` owns application bootstrap, global providers, and top-level composition.
+`src/routes` owns URL-to-page adapters, not feature behavior. Each feature owns its
+page, feature-specific UI, domain rules, state, validation, and API operations.
+`shared` is for code that is independent of any feature's domain vocabulary;
+similar-looking feature code does not move there until a genuinely common contract
+is clear. A shared component takes data and callbacks through its public API
+instead of importing feature code. Do not use `shared` as a re-export path around
+the feature import rules.
+
+Use lowercase kebab-case for feature directories and URL segments, and PascalCase
+for React components. Give modules names that describe their role within the
+feature, such as `tasks.endpoints.ts`; keep tests beside the code they cover.
+Create folders only when they contain real code. Cross-feature imports remain
+forbidden even if both features happen to use the same data shape.
+
+## Route contract
+
+The current application has only its starter page. When a real page is added,
+`src/routes` connects its URL to a page exported by the owning feature. Route
+adapters may read and validate URL parameters and choose loading or error
+boundaries; they do not contain domain behavior or issue API requests. A feature
+page receives the route values it needs and owns the page's behavior. `src/app`
+mounts the router and providers when T04 selects a router.
+
+URLs use lowercase kebab-case segments; stable identifiers go in path parameters
+and transient view state may go in search parameters. Define the actual URLs,
+404 behavior, lazy-loading strategy, and router-specific file conventions with
+the first real routes in T04. Do not create placeholder route files before then.
+
 ## Dependencies
 
 `app` and `routes` may compose features and use shared infrastructure.
@@ -49,6 +80,11 @@ directions for TypeScript and JavaScript. `no-unknown-files` and
 structure. Keep the TypeScript import resolver configured when introducing path
 aliases so unresolved aliases cannot bypass these checks. The existing
 `vp check` pre-commit and CI steps run the same lint configuration.
+`no-ignored-dependencies` also rejects source imports that resolve outside the
+included source and installed-package paths. Package paths are included for
+classification because the rule otherwise mistakes ordinary package imports
+for ignored local files.
+
 Fallow ignores the TypeScript import resolver's unused-dependency warning:
 Oxlint loads that package by its `typescript` resolver name from configuration.
 
@@ -57,10 +93,24 @@ Oxlint loads that package by its `typescript` resolver name from configuration.
 `shared/api` owns the reusable HTTP client and cross-feature API types; it
 must not contain endpoint operations for a specific feature. A feature owns its
 endpoint calls, service transformations, hooks, query keys, cache policy, and
-mutation invalidation. Pages consume hooks and render states. Services call
-endpoints, while hooks use services and own TanStack Query integration when T05
-is implemented. Preserve abort signals through the hook, service, and endpoint
-layers.
+mutation invalidation. Pages render feature state and actions. Every remote
+operation goes through a feature service, which calls a feature endpoint.
+Feature hooks or controllers call the service, never the endpoint directly.
+Hooks will own TanStack Query integration if T05 chooses it. Preserve abort
+signals through every layer used by an operation.
+
+For a feature that needs remote data, the flow is page to feature hook or
+controller, then feature service, feature endpoint, and shared transport.
+Feature components may keep local UI state and receive data or callbacks, but
+should not know transport URLs or perform requests directly. Services own
+feature-level mapping and orchestration; endpoints own feature URLs and
+request/response details; shared transport owns generic request behavior and
+must not encode a feature's business rules. Create these files when the first
+real remote operation exists, rather than adding empty placeholders. Handle
+loading, empty, error, and success states at the feature boundary, with
+domain-specific error messages owned by the feature. T05 will choose the cache
+and mutation mechanism; T06 will settle the schema source and generated API
+types.
 
 T06 will decide the source of the OpenAPI schema, generation command, generated
 file location under `shared/api`, and how runtime validation relates to
