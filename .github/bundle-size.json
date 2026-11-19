@@ -1,4 +1,6 @@
 {
   "defaultLimitKB": 20,
-  "overrides": {}
+  "overrides": {
+    "assets/index.js": 200
+  }
 }
