@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 set -e
 
+echo "Checking staged files with React Doctor..."
+react-doctor . --staged --scope files --yes --verbose --no-score --blocking error
+
 staged_before=$(git diff --cached --name-only)
 vp staged --hide-unstaged
 staged_after=$(git diff --cached --name-only)
@@ -26,9 +29,6 @@ semgrep scan --config p/javascript --metrics off --error src .github/scripts
 
 echo "Checking current changes with Fallow..."
 fallow audit --base HEAD --gate all
-
-echo "Checking staged files with React Doctor..."
-react-doctor . --staged --scope files --yes --verbose --no-score --blocking error
 
 if ! git diff --quiet -- package.json pnpm-lock.yaml pnpm-workspace.yaml .github/audit-exceptions.json; then
   echo "Stage dependency and audit exception changes before committing" >&2

@@ -27,6 +27,8 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "babel-plugin-react-compiler": "^1.0.0",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-boundaries": "^7.4.4",
     "fallow": "^3.43.1",
     "react-doctor": "^0.9.23",
     "size-limit": "^14.3.0",
