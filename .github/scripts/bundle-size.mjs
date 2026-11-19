@@ -21,6 +21,14 @@ export function stableName(file) {
   return file.replace(/^(.+)-[a-zA-Z0-9_-]{8,}(\.(?:js|css))$/, "$1$2");
 }
 
+export function enforceTrustedLimits(rows, trusted) {
+  for (const row of rows) {
+    const allowed = trusted.overrides[row.key] ?? trusted.defaultLimitKB;
+    if (!Number.isSafeInteger(allowed) || allowed <= 0 || row.limitKB > allowed)
+      throw new Error(`Bundle size limit exceeds the trusted policy: ${row.key}`);
+  }
+}
+
 export async function measureBundles(root, config, calculate) {
   if (
     !Number.isSafeInteger(config.defaultLimitKB) ||
@@ -171,8 +179,10 @@ function summary(rows, sha) {
 
 async function check(env, manifest) {
   try {
-    const config = JSON.parse(await readFile(".github/bundle-size.json", "utf8"));
+    const config = JSON.parse(await readFile("bundle/bundle-size.json", "utf8"));
+    const trusted = JSON.parse(await readFile(".github/bundle-size.json", "utf8"));
     const rows = await measureBundles("bundle/.vercel/output/static", config);
+    enforceTrustedLimits(rows, trusted);
     const result = summary(rows, manifest.sha);
     await report(
       env,
