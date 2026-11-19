@@ -38,8 +38,9 @@ directory is for flows that span features or run in a browser.
 
 Tailwind CSS is integrated through the Vite plugin. Semantic shadcn/ui theme
 tokens live in `src/styles/index.css`, with neutral light values and a `.dark`
-variant. `components.json` directs generated, domain-neutral UI components to
-`src/shared/ui`. Add each component when a real page needs it; keep feature-
+variant that follows the operating system preference. `components.json` directs
+generated, domain-neutral UI components to `src/shared/ui`. Add each component
+when a real page needs it; keep feature-
 specific composition and behavior inside the owning feature. Review generated
 components for accessibility in their actual use, including keyboard behavior,
 labels, focus states, and contrast.
