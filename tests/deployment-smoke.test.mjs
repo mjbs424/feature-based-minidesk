@@ -1,10 +1,19 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { smokeDeployment } from "../.github/scripts/deployment-smoke.mjs";
+import { smokeDeployment, smokeTarget } from "../.github/scripts/deployment-smoke.mjs";
 
 const url = "https://minidesk-preview.vercel.app/";
 const html =
   '<div id="root"></div><script src="/assets/app-123.js"></script><link href="/assets/app-123.css" rel="stylesheet">';
+
+test("uses the public production domain and the exact preview deployment URL", () => {
+  assert.equal(
+    smokeTarget("push", "https://protected-deployment.vercel.app/"),
+    "https://feature-based-minidesk.vercel.app/",
+  );
+  assert.equal(smokeTarget("pull_request", url), url);
+  assert.throws(() => smokeTarget("workflow_dispatch", url), /Unsupported smoke test event/);
+});
 
 test("checks the deployed application and its built assets", async () => {
   const seen = [];
