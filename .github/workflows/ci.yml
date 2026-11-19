@@ -58,6 +58,7 @@ jobs:
           mkdir -p bundle/.vercel/output/static
           cp -a dist/. bundle/.vercel/output/static/
           cp .github/bundle-size.json bundle/bundle-size.json
+          cp .github/lighthouse-thresholds.json bundle/lighthouse-thresholds.json
           node --input-type=module -e 'import { writeFileSync } from "node:fs"; import { secureBuildOutputConfig } from "./.github/scripts/build-output-config.mjs"; writeFileSync("bundle/.vercel/output/config.json", `${JSON.stringify(secureBuildOutputConfig)}\n`)'
           node -e 'require("fs").writeFileSync("bundle/manifest.json", JSON.stringify({event:process.env.EVENT_NAME,pr:Number(process.env.PR_NUMBER)||null,sha:process.env.HEAD_SHA,runSha:process.env.RUN_SHA}))'
       - uses: actions/upload-artifact@v4

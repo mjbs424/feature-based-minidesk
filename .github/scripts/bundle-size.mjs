@@ -156,6 +156,7 @@ export async function report(env, manifest, state, description, body, options = 
     return;
   }
   await postStatus(request, env, manifest, pr, state, description, options.context ?? context);
+  options.onStatusPublished?.();
   if (body) await updateComment(request, manifest.pr, body, options.marker ?? marker);
 }
 
