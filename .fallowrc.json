@@ -1,3 +1,4 @@
 {
-  "ignoreBinaries": ["vercel", "lhci"]
+  "ignoreBinaries": ["vercel", "lhci"],
+  "ignoreDependencies": ["eslint-import-resolver-typescript"]
 }
