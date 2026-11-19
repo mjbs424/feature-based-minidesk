@@ -103,6 +103,9 @@ if (!/^https:\/\/[a-z0-9.-]+\.vercel\.app\/?$/i.test(url)) {
   throw new Error(`Unexpected Vercel deployment URL: ${url}`);
 }
 console.log(`Deployment: ${url}`);
+if (process.env.GITHUB_OUTPUT) {
+  await appendFile(process.env.GITHUB_OUTPUT, `deployment_url=${url}\n`);
+}
 
 if (runEvent === "pull_request") {
   if (!(await currentPr())) {
