@@ -10,7 +10,6 @@ The current focus is the agent guidance and tooling section. Other work can proc
 
 | ID  | Open task                                                       | Expected outcome                                                                                                                                 |
 | --- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| T03 | Tailwind and shadcn/ui                                          | Review the remaining theme, design-token, and accessibility decisions after the initial setup. Add components only when needed.                  |
 | T04 | TanStack Router                                                 | Set up the approved router with real routes, 404 handling, lazy loading, and static deployment; choose route conventions.                        |
 | T05 | TanStack Query                                                  | Set up the approved data library and define query keys, caching, mutations, errors, loading, and invalidation when data requirements are known.  |
 | T06 | [OpenAPI TypeScript](https://openapi-ts.dev/) and the API layer | Choose a schema source, type generation, schema change checks, and the API call contract. Keep the choice open until a real API contract exists. |

@@ -19,7 +19,7 @@ src/
       lib/                      # Feature-specific utilities, when needed
   shared/
     api/                       # HTTP transport; generated types after T06 decision
-    ui/                        # Reusable, domain-neutral components (T03)
+    ui/                        # Reusable, domain-neutral components when needed
     lib/                       # Domain-neutral utilities
     config/                    # Shared configuration
     assets/                    # Shared static assets
@@ -37,8 +37,8 @@ directory is for flows that span features or run in a browser.
 ## UI foundation
 
 Tailwind CSS is integrated through the Vite plugin. Semantic shadcn/ui theme
-tokens live in `src/styles/index.css`, with neutral light values and a `.dark`
-variant that follows the operating system preference. `components.json` directs
+tokens live in `src/styles/index.css`; palette and theme behavior are specified
+in [design.md](design.md). `components.json` directs
 generated, domain-neutral UI components to `src/shared/ui`. Add each component
 when a real page needs it; keep feature-
 specific composition and behavior inside the owning feature. Review generated
@@ -46,8 +46,8 @@ components for accessibility in their actual use, including keyboard behavior,
 labels, focus states, and contrast.
 
 The planned page appearances are documented in [design.md](design.md) and the
-reference images in `public/`. The current neutral theme tokens and starter
-page are not the final visual implementation.
+reference images in `public/`. The current starter page is not the final visual
+implementation.
 
 ## Ownership and naming
 
