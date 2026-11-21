@@ -23,6 +23,6 @@
 
 ## Change discipline
 
-The task owner updates only the affected source documents in the same PR. A script change needs a command audit in `development.md`; an import-boundary change needs an architecture audit; a visual decision needs the design guide checked; an API decision belongs in `api.md` and the affected feature spec. Change `AGENTS.md` only when the always-needed rules or document selection map change. Check links and remove outdated statements rather than adding a second explanation elsewhere.
+The task owner updates only the affected source documents in the same PR. Change `AGENTS.md` only when the always-needed rules or document selection map change. Check links and remove outdated statements rather than adding a second explanation elsewhere.
 
-Research reports are evidence, not binding instructions. State unresolved choices plainly. Keep examples and paths accurate against the repository, and avoid empty folders made only to illustrate a possible architecture. The [documentation reviewer](documentation-review.md) independently checks these properties whenever a document changes.
+Research reports are evidence, not binding instructions. State unresolved choices plainly. For a repeatable ambiguity, ask the user and record the answer in the owning document or skill before applying it broadly. Keep examples and paths accurate against the repository, and avoid empty folders made only to illustrate a possible architecture. The [documentation reviewer](documentation-review.md) independently checks these properties whenever a document changes.

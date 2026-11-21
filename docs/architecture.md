@@ -102,8 +102,7 @@ included source and installed-package paths. Package paths are included for
 classification because the rule otherwise mistakes ordinary package imports
 for ignored local files.
 
-Fallow ignores the TypeScript import resolver's unused-dependency warning:
-Oxlint loads that package by its `typescript` resolver name from configuration.
+When changing import-boundary rules or their include scope, audit affected imports and checks, and update this contract in the same PR.
 
 ## API ownership
 

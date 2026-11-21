@@ -9,3 +9,5 @@ MiniDesk is a small, feature-based React application with three planned pages: T
 | Focus    | Start a focus session and review progress. | The references show a timer, priority tasks, focused-time summary, and recent sessions. Timer lifecycle, background behavior, task association, and persistence require a feature specification.                        |
 
 Implement a feature from its approved spec, not from image text or illustrative numbers. For each feature, define the user journey, data ownership, empty/loading/error/success states where applicable, keyboard and mobile behavior, and acceptance evidence before committing to functionality. Spec Kit is planned for a later evaluation; it has not produced these specs yet. Put future feature specifications under `specs/<feature>/` as described in [documentation.md](documentation.md).
+
+Research reports inform planning; they are not approved feature specifications.

@@ -28,9 +28,15 @@ The Git pre-commit hook also needs Gitleaks and Semgrep on `PATH`. Semgrep's `p/
 
 `vp run audit` and `security-audit.mjs` serve different purposes. The security script reads the `pnpm audit` report and the exception map. `vp test` is Vite+'s built-in test command, not the current `node --test` script. Use `vp run test`. The UI testing level and framework are not yet chosen. Likewise, use `vp run build` to include the project's TypeScript build step. CI currently invokes equivalent pnpm commands from its workflow; this guide uses `vp` for local development.
 
+When a script or command changes, audit this command list and the affected check coverage in the same PR.
+
 ## Check coverage
 
 For full local verification, run `vp check`, `vp run test`, `vp run build`, `vp run audit`, and `vp run doctor`. Run the security audit script when dependencies change. Inspect reports; Fallow's configured audit does not automatically gate every kind of finding.
+
+The bundle-size check measures built JavaScript and CSS, not every static asset. The current Lighthouse check visits only the starter route, so it does not establish performance coverage for future feature routes. Interpret both reports within these limits.
+
+Fallow ignores the TypeScript import resolver's unused-dependency warning because Oxlint loads that package by its `typescript` resolver name from configuration.
 
 The pre-commit hook runs React Doctor on staged files, `vp staged --hide-unstaged`, Gitleaks on staged files, Semgrep on `src` and `.github/scripts`, Fallow, and the dependency security check. It verifies the staged file set again after `vp staged`. The hook does not run `pnpm test`; CI runs it.
 
