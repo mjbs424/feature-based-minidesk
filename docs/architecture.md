@@ -6,19 +6,19 @@ the example below is a placement guide, not a requirement to create empty folder
 ```text
 src/
   app/                         # Bootstrap and top-level providers
-  routes/                      # URL definitions and thin route adapters (T04)
+  routes/                      # URL definitions and thin route adapters (T04 setup pending)
   features/
     tasks/                     # Example feature; use the same shape for expenses, focus, etc.
       TasksPage.tsx             # Page composition and visible UI
       components/               # UI specific to tasks
-      hooks/tasks.hooks.ts      # Query/mutation hooks and query keys
+      hooks/tasks.hooks.ts      # Query/mutation hooks and query keys when needed
       api/tasks.endpoints.ts    # HTTP calls and endpoint paths
       api/tasks.service.ts      # Feature-specific response mapping and operations
       schemas/                  # Runtime validation and form schemas specific to tasks
       model/                    # Feature-specific types and domain logic
       lib/                      # Feature-specific utilities, when needed
   shared/
-    api/                       # HTTP transport, generated API types/client (T06)
+    api/                       # HTTP transport; generated types after T06 decision
     ui/                        # Reusable, domain-neutral components (T03)
     lib/                       # Domain-neutral utilities
     config/                    # Shared configuration
@@ -45,6 +45,10 @@ specific composition and behavior inside the owning feature. Review generated
 components for accessibility in their actual use, including keyboard behavior,
 labels, focus states, and contrast.
 
+The planned page appearances are documented in [design.md](design.md) and the
+reference images in `public/`. The current neutral theme tokens and starter
+page are not the final visual implementation.
+
 ## Ownership and naming
 
 `src/app` owns application bootstrap, global providers, and top-level composition.
@@ -64,12 +68,14 @@ forbidden even if both features happen to use the same data shape.
 
 ## Route contract
 
-The current application has only its starter page. When a real page is added,
+The current application has only its starter page. TanStack Router is the
+approved routing library, but it is not installed yet; T04 will set it up.
+When a real page is added,
 `src/routes` connects its URL to a page exported by the owning feature. Route
 adapters may read and validate URL parameters and choose loading or error
 boundaries; they do not contain domain behavior or issue API requests. A feature
 page receives the route values it needs and owns the page's behavior. `src/app`
-mounts the router and providers when T04 selects a router.
+mounts the router and providers when T04 configures TanStack Router.
 
 URLs use lowercase kebab-case segments; stable identifiers go in path parameters
 and transient view state may go in search parameters. Define the actual URLs,
@@ -101,13 +107,15 @@ Oxlint loads that package by its `typescript` resolver name from configuration.
 
 ## API ownership
 
-`shared/api` owns the reusable HTTP client and cross-feature API types; it
+`shared/api` owns the reusable HTTP client and, after a contract decision,
+cross-feature API types; it
 must not contain endpoint operations for a specific feature. A feature owns its
 endpoint calls, service transformations, hooks, query keys, cache policy, and
 mutation invalidation. Pages render feature state and actions. Every remote
 operation goes through a feature service, which calls a feature endpoint.
 Feature hooks or controllers call the service, never the endpoint directly.
-Hooks will own TanStack Query integration if T05 chooses it. Preserve abort
+TanStack Query is the approved data library but is not installed yet; T05
+defines its query keys, cache, and mutation integration. Preserve abort
 signals through every layer used by an operation.
 
 For a feature that needs remote data, the flow is page to feature hook or
@@ -119,12 +127,12 @@ request/response details; shared transport owns generic request behavior and
 must not encode a feature's business rules. Create these files when the first
 real remote operation exists, rather than adding empty placeholders. Handle
 loading, empty, error, and success states at the feature boundary, with
-domain-specific error messages owned by the feature. T05 will choose the cache
-and mutation mechanism; T06 will settle the schema source and generated API
-types.
+domain-specific error messages owned by the feature. T06 will settle the
+schema source and generated API types. See [api.md](api.md) for decided and
+open contracts.
 
-T06 will decide the source of the OpenAPI schema, generation command, generated
-file location under `shared/api`, and how runtime validation relates to
-generated types. The previously proposed top-level `api/` and `openapi/`
-directories are reserved names, not folders to create before that decision;
-this frontend does not assume a backend implementation in this repository.
+T06 will decide whether OpenAPI is the contract format, the schema source,
+generation command, generated file location, and how runtime validation
+relates to generated types. The previously proposed top-level `api/` and
+`openapi/` directories are reserved names, not folders to create before that
+decision; this frontend does not assume a backend implementation here.

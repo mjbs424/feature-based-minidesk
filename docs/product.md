@@ -1,0 +1,13 @@
+# Product direction
+
+MiniDesk is a small, feature-based React application with three planned pages: To-do, Expenses, and Focus. The pages give the project real user-facing slices for exercising architecture, UI, quality checks, performance budgets, and delivery. The deployed application currently shows a starter page. The design images in `public/` show a proposed look; they do not establish completed functionality.
+
+| Area     | User purpose                               | Scope known now                                                                                                                                                                                                         |
+| -------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| To-do    | See and organize tasks and their progress. | A task list is the first visual focus. The references show today, upcoming, completion, categories, and an add action. Exact create/edit/delete behavior, persistence, and data source require a feature specification. |
+| Expenses | Review spending and understand a budget.   | The references show transaction lists, a monthly budget summary, category breakdowns, and an add action. Currency rules, recurring behavior, persistence, and aggregation semantics require a feature specification.    |
+| Focus    | Start a focus session and review progress. | The references show a timer, priority tasks, focused-time summary, and recent sessions. Timer lifecycle, background behavior, task association, and persistence require a feature specification.                        |
+
+Implement a feature from its approved spec, not from image text or illustrative numbers. For each feature, define the user journey, data ownership, empty/loading/error/success states where applicable, keyboard and mobile behavior, and acceptance evidence before committing to functionality. Spec Kit is planned for a later evaluation; it has not produced these specs yet. Put future feature specifications under `specs/<feature>/` as described in [documentation.md](documentation.md).
+
+The application and new project documentation are in English; existing Persian research reports stay in Persian until the user approves their revision. The project's [README](../README.md) explains the tooling and deployment purpose; [architecture](architecture.md), [API contract](api.md), and [design](design.md) own implementation constraints. The research reports at the repository root are background, not approved product requirements.
