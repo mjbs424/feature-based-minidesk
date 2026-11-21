@@ -107,32 +107,9 @@ Oxlint loads that package by its `typescript` resolver name from configuration.
 
 ## API ownership
 
-`shared/api` owns the reusable HTTP client and, after a contract decision,
-cross-feature API types; it
-must not contain endpoint operations for a specific feature. A feature owns its
-endpoint calls, service transformations, hooks, query keys, cache policy, and
-mutation invalidation. Pages render feature state and actions. Every remote
-operation goes through a feature service, which calls a feature endpoint.
-Feature hooks or controllers call the service, never the endpoint directly.
-TanStack Query is the approved data library but is not installed yet; T05
-defines its query keys, cache, and mutation integration. Preserve abort
-signals through every layer used by an operation.
-
-For a feature that needs remote data, the flow is page to feature hook or
-controller, then feature service, feature endpoint, and shared transport.
-Feature components may keep local UI state and receive data or callbacks, but
-should not know transport URLs or perform requests directly. Services own
-feature-level mapping and orchestration; endpoints own feature URLs and
-request/response details; shared transport owns generic request behavior and
-must not encode a feature's business rules. Create these files when the first
-real remote operation exists, rather than adding empty placeholders. Handle
-loading, empty, error, and success states at the feature boundary, with
-domain-specific error messages owned by the feature. T06 will settle the
-schema source and generated API types. See [api.md](api.md) for decided and
-open contracts.
-
-T06 will decide whether OpenAPI is the contract format, the schema source,
-generation command, generated file location, and how runtime validation
-relates to generated types. The previously proposed top-level `api/` and
-`openapi/` directories are reserved names, not folders to create before that
-decision; this frontend does not assume a backend implementation here.
+Each feature owns its remote operations; `shared/api` is for domain-neutral
+transport and, after a contract decision, shared types. The mandatory request
+path, layer responsibilities, approved TanStack Query choice, and open schema
+decisions live in [api.md](api.md). Create files only when a real operation needs
+them. The previously proposed top-level `api/` and `openapi/` directories are
+possibilities for T06, not folders to create before that decision.

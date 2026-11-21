@@ -11,7 +11,7 @@ route adapter -> feature page -> feature hook/controller -> feature service
              -> feature endpoint -> shared transport
 ```
 
-`src/routes` connects a URL to its feature page and passes validated route values. The page and feature UI present state and actions; they do not call the transport or endpoint. A feature hook/controller invokes its service. The service is mandatory even for a simple request and owns feature-level operations, mapping, or orchestration. The endpoint owns that feature's URL and request/response mechanics. `src/shared/api` owns only domain-neutral transport and, after a later decision, shared/generated API types. A feature never imports another feature. Pass cancellation/abort signals through every used layer.
+The page and feature UI present state and actions; they do not call the transport or endpoint. A feature hook/controller invokes its service. The service is mandatory even for a simple request and owns feature-level operations, mapping, or orchestration. The endpoint owns that feature's URL and request/response mechanics. `src/shared/api` owns only domain-neutral transport and, after a later decision, shared/generated API types. Pass cancellation/abort signals through every used layer. Source import boundaries belong to [architecture.md](architecture.md).
 
 Create actual files only when a real remote operation exists. The example paths in [architecture.md](architecture.md) are placement guidance, not a request for empty scaffolding. The feature owns its loading, empty, error, and success presentation. Do not put feature-specific messages or business rules in shared transport.
 
