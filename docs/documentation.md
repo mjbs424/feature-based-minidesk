@@ -9,7 +9,7 @@
 | Code ownership, imports, routing boundaries  | [architecture.md](architecture.md)                 | Read before source changes; update with an architecture contract change.                                                         |
 | Remote data flow and unsettled API decisions | [api.md](api.md)                                   | Read before remote data work; update once the API contract is chosen.                                                            |
 | Local setup, checks, hook, CI, deployment    | [development.md](development.md)                   | Read before validation or delivery; update with scripts or workflow changes.                                                     |
-| Agent task lifecycle and review              | [agent-workflow.md](agent-workflow.md)             | Read before review or delivery; update when the accepted workflow changes.                                                       |
+| Agent task lifecycle and review              | [agent-workflow.md](agent-workflow.md)             | Read for every task: section 1 before the first edit; remaining steps at their stages. Update when the workflow changes.         |
 | Independent documentation review             | [documentation-review.md](documentation-review.md) | Give to a separate reviewer whenever documentation changes; update the brief when its review criteria change.                    |
 | Current work queue                           | `inprogress.md` when present on the active branch  | Read for context after the user assigns a task; it does not authorize an agent to select work or prove a candidate is installed. |
 

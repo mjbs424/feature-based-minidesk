@@ -15,7 +15,7 @@ Read the request, current diff, and any approved task or feature spec. Apply eve
 | Setup, commands, checks, CI | [Development](docs/development.md)                                                      |
 | Documentation changes       | [Documentation map](docs/documentation.md)                                              |
 
-Before review or delivery, follow the [task workflow](docs/agent-workflow.md). Check actual code and configuration before assuming a tool, route, test, or API exists.
+Before the first edit, read [workflow section 1](docs/agent-workflow.md#1-scope-and-implement) and complete its scope and branch setup. Follow later steps when due. Check actual code and configuration before assuming a tool, route, test, or API exists.
 
 ## Rules for every task
 
