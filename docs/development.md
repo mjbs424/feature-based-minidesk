@@ -36,6 +36,8 @@ For full local verification, run `vp check`, `vp run test`, `vp run build`, `vp 
 
 The bundle-size check measures built JavaScript and CSS, not every static asset. The current Lighthouse check visits only the starter route, so it does not establish performance coverage for future feature routes. Interpret both reports within these limits.
 
+The rationale for the Size Limit file-budget check is recorded in [ADR 0001](decisions/0001-use-size-limit-for-built-asset-budgets.md).
+
 Fallow ignores the TypeScript import resolver's unused-dependency warning because Oxlint loads that package by its `typescript` resolver name from configuration.
 
 The pre-commit hook runs React Doctor on staged files, `vp staged --hide-unstaged`, Gitleaks on staged files, Semgrep on `src` and `.github/scripts`, Fallow, and the dependency security check. It verifies the staged file set again after `vp staged`. The hook does not run `pnpm test`; CI runs it.
