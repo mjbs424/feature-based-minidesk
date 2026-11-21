@@ -3,6 +3,7 @@ import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, lazyPlugins } from "vite-plus";
 import { fileURLToPath } from "node:url";
+import { tanstackRouter } from "@tanstack/router-plugin/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -15,7 +16,9 @@ export default defineConfig({
   staged: {
     "*": "vp check --fix",
   },
-  fmt: {},
+  fmt: {
+    ignorePatterns: ["src/routes/routeTree.gen.ts"],
+  },
   lint: {
     plugins: ["react", "typescript", "oxc"],
     jsPlugins: [
@@ -96,5 +99,15 @@ export default defineConfig({
       typeCheck: true,
     },
   },
-  plugins: lazyPlugins(() => [react(), babel({ presets: [reactCompilerPreset()] }), tailwindcss()]),
+  plugins: lazyPlugins(() => [
+    tanstackRouter({
+      target: "react",
+      autoCodeSplitting: true,
+      generatedRouteTree: "./src/routes/routeTree.gen.ts",
+      routeFileIgnorePattern: "routeTree.gen.ts",
+    }),
+    react(),
+    babel({ presets: [reactCompilerPreset()] }),
+    tailwindcss(),
+  ]),
 });

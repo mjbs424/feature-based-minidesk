@@ -1,6 +1,6 @@
 # UI direction and reference assets
 
-The images below are the visual references supplied for the planned To-do, Expenses, and Focus pages. They guide future implementation; the current starter page does not implement them. Use the images for visual hierarchy, palette, density, and navigation. Do not treat generated text, totals, timestamps, or decorative controls in an image as a validated functional contract. Resolve behavior in the feature spec with the user.
+The images below are the visual references supplied for the planned To-do, Expenses, and Focus pages. They guide future implementation; the current coming-soon pages do not implement them. Real-user monitoring has no supplied visual reference. Use the images for visual hierarchy, palette, density, and navigation. Do not treat generated text, totals, timestamps, or decorative controls in an image as a validated functional contract. Resolve behavior in the feature spec with the user.
 
 | Feature  | Desktop light                                     | Desktop dark                                    | Mobile light                                             | Mobile dark                                            |
 | -------- | ------------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------ |
@@ -10,7 +10,7 @@ The images below are the visual references supplied for the planned To-do, Expen
 
 `todo-list-dark-design2.png` is an earlier dark To-do alternative, not the selected design. The selected dark desktop reference has the preferred bright violet side rail, but its rightmost controls are cropped. **Implement a comfortable right inset consistent with the other desktop designs; never reproduce that crop.**
 
-These reference PNGs are in `public/` at the user's request, so Vite copies them into the deployment even though the app does not display them. They currently total about 19 MiB. The bundle-size check measures built JS/CSS, and the current Lighthouse check visits only the starter route; neither reports this reference-asset cost. Keep the files as documentation references, do not load them in application UI, and optimize or replace any image selected for actual runtime use as part of that feature's performance review.
+These reference PNGs are in `public/` at the user's request, so Vite copies them into the deployment even though the app does not display them. They currently total about 19 MiB. The bundle-size check measures built JS/CSS, and the current Lighthouse check visits only the root To-do route; neither reports this reference-asset cost. Keep the files as documentation references, do not load them in application UI, and optimize or replace any image selected for actual runtime use as part of that feature's performance review.
 
 ## Shared visual rules
 
@@ -22,7 +22,7 @@ These reference PNGs are in `public/` at the user's request, so Vite copies them
 
 ## Theme and accessibility decisions
 
-The app follows the operating system's light or dark preference, including changes while it is open. A manual theme control and persistence belong to future UI work; do not add them to the starter screen. Check the rendered result in both modes when implementing a feature.
+The app follows the operating system's light or dark preference, including changes while it is open. A manual theme control and persistence belong to future UI work. Check the rendered result in both modes when implementing a feature.
 
 Use at least WCAG AA contrast for text (4.5:1, or 3:1 for large text) and essential non-text controls and focus indicators (3:1). Keep focus visible, keyboard controls operable, and names and states available to assistive technology. The active navigation item needs a visible distinction and an accessible state such as `aria-current="page"`. Touch targets should meet the 24 by 24 CSS-pixel minimum or its spacing exception; aim for larger targets on mobile. Verify these rules on actual components, including disabled, selected, loading, empty, and error states; token contrast alone does not establish page accessibility.
 

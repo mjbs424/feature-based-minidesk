@@ -18,7 +18,30 @@ test("accepts only the intended security headers on the new build output", () =>
 });
 
 test("rejects artifact routes that could serve a different destination", () => {
-  const altered = structuredClone(secureBuildOutputConfig);
-  altered.routes[0].dest = "https://example.com";
+  const altered = {
+    ...structuredClone(secureBuildOutputConfig),
+    routes: [
+      ...structuredClone(secureBuildOutputConfig.routes),
+      { handle: "filesystem" },
+      { src: "/(.*)", dest: "https://example.com" },
+    ],
+  };
   assert.throws(() => assertTrustedBuildOutputConfig(altered), /Unexpected build output/);
+});
+
+test("accepts the current config and the exact filesystem-first SPA config", () => {
+  const spaConfig = {
+    ...structuredClone(secureBuildOutputConfig),
+    routes: [
+      ...structuredClone(secureBuildOutputConfig.routes),
+      { handle: "filesystem" },
+      { src: "/(.*)", dest: "/index.html" },
+    ],
+  };
+  assert.doesNotThrow(() => assertTrustedBuildOutputConfig(secureBuildOutputConfig));
+  assert.doesNotThrow(() => assertTrustedBuildOutputConfig(spaConfig));
+
+  const reordered = structuredClone(spaConfig);
+  reordered.routes.reverse();
+  assert.throws(() => assertTrustedBuildOutputConfig(reordered), /Unexpected build output/);
 });

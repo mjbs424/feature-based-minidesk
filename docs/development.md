@@ -34,7 +34,9 @@ When a script or command changes, audit this command list and the affected check
 
 For full local verification, run `vp check`, `vp run test`, `vp run build`, `vp run audit`, and `vp run doctor`. Run the security audit script when dependencies change. Inspect reports; Fallow's configured audit does not automatically gate every kind of finding.
 
-The bundle-size check measures built JavaScript and CSS, not every static asset. The current Lighthouse check visits only the starter route, so it does not establish performance coverage for future feature routes. Interpret both reports within these limits.
+The bundle-size check measures built JavaScript and CSS, not every static asset. The current Lighthouse check visits only the root To-do route, so it does not establish performance coverage for the other feature routes. Interpret both reports within these limits.
+
+The deployment smoke test requests `/`, an unknown deep link, `/favicon.svg`, and the entry JavaScript and CSS. It follows local JS/CSS references in built JavaScript to check route chunks too. It checks content types and security headers on the HTML and SVG responses; browser rendering of the 404 page still needs a separate check.
 
 The rationale for the Size Limit file-budget check is recorded in [ADR 0001](decisions/0001-use-size-limit-for-built-asset-budgets.md).
 

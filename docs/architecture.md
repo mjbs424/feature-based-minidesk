@@ -6,15 +6,15 @@ the example below is a placement guide, not a requirement to create empty folder
 ```text
 src/
   app/                         # Bootstrap and top-level providers
-  routes/                      # URL definitions and thin route adapters (T04 setup pending)
+  routes/                      # File-based URL tree and thin route adapters
   features/
-    tasks/                     # Example feature; use the same shape for expenses, focus, etc.
-      TasksPage.tsx             # Page composition and visible UI
-      components/               # UI specific to tasks
-      hooks/tasks.hooks.ts      # Query/mutation hooks and query keys when needed
-      api/tasks.endpoints.ts    # HTTP calls and endpoint paths
-      api/tasks.service.ts      # Feature-specific response mapping and operations
-      schemas/                  # Runtime validation and form schemas specific to tasks
+    to-do/                     # Example feature; use the same shape for expenses, focus, etc.
+      ToDoPage.tsx              # Page composition and visible UI
+      components/               # UI specific to To-do
+      hooks/to-do.hooks.ts      # Query/mutation hooks and query keys when needed
+      api/to-do.endpoints.ts    # HTTP calls and endpoint paths
+      api/to-do.service.ts      # Feature-specific response mapping and operations
+      schemas/                  # Runtime validation and form schemas specific to To-do
       model/                    # Feature-specific types and domain logic
       lib/                      # Feature-specific utilities, when needed
   shared/
@@ -46,8 +46,8 @@ components for accessibility in their actual use, including keyboard behavior,
 labels, focus states, and contrast.
 
 The planned page appearances are documented in [design.md](design.md) and the
-reference images in `public/`. The current starter page is not the final visual
-implementation.
+reference images in `public/`. The current coming-soon pages are not the final
+visual implementation.
 
 ## Ownership and naming
 
@@ -68,19 +68,29 @@ forbidden even if both features happen to use the same data shape.
 
 ## Route contract
 
-The current application has only its starter page. TanStack Router is the
-approved routing library, but it is not installed yet; T04 will set it up.
-When a real page is added,
-`src/routes` connects its URL to a page exported by the owning feature. Route
-adapters may read and validate URL parameters and choose loading or error
-boundaries; they do not contain domain behavior or issue API requests. A feature
-page receives the route values it needs and owns the page's behavior. `src/app`
-mounts the router and providers when T04 configures TanStack Router.
+TanStack Router uses file-based routing. `src/routes/__root.tsx` supplies the
+outlet and the not-found feature; `src/routes/index.tsx` connects `/` to the
+To-do feature. The Vite plugin generates `src/routes/routeTree.gen.ts`,
+which should be committed so TypeScript checks can run before a build. Do not
+edit the generated file. `src/app/router.tsx` creates the router and `src/app/main.tsx`
+mounts it. The root route handles unmatched URLs with a page-not-found message
+and a link to `/`. This decision is recorded in [ADR 0002](decisions/0002-use-tanstack-router-for-client-routing.md).
+
+For each feature page, `src/routes` connects its URL to a page exported
+by the owning feature. Route adapters may read and validate URL parameters and
+choose loading or error boundaries; they do not contain domain behavior or issue
+API requests. A feature page receives the route values it needs and owns the
+page's behavior.
 
 URLs use lowercase kebab-case segments; stable identifiers go in path parameters
-and transient view state may go in search parameters. Define the actual URLs,
-404 behavior, lazy-loading strategy, and router-specific file conventions with
-the first real routes in T04. Do not create placeholder route files before then.
+and transient view state may go in search parameters. The current routes are
+`/` for To-do, `/expenses`, `/focus`, and `/real-user-monitoring`. They show
+coming-soon pages until their feature specifications define behavior. The plugin
+is enabled for automatic route code splitting. Vite+ Oxfmt excludes the generated
+route tree through `fmt.ignorePatterns` in `vite.config.ts` because the router
+plugin owns that file's formatting. The Vercel Build Output API checks static files before
+rewriting unmatched paths to `/index.html`, so a direct browser visit can reach
+the client router.
 
 ## Dependencies
 
