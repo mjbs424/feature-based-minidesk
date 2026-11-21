@@ -23,7 +23,14 @@ function deploymentOrigin(value) {
   return url;
 }
 
-async function requestOnOrigin(url, origin, secret, request) {
+function redirectTarget(location, url, expectedPathname) {
+  const nextUrl = new URL(location, url);
+  if (expectedPathname !== undefined && nextUrl.pathname !== expectedPathname)
+    throw new Error("Deployment redirected to a different path");
+  return nextUrl;
+}
+
+async function requestOnOrigin(url, origin, secret, request, expectedPathname) {
   for (let redirects = 0; redirects < 4; redirects++) {
     if (url.origin !== origin) throw new Error("Deployment redirected outside its origin");
     const response = await request(url, {
@@ -33,7 +40,7 @@ async function requestOnOrigin(url, origin, secret, request) {
     if (response.status >= 300 && response.status < 400) {
       const location = response.headers.get("location");
       if (!location) throw new Error("Deployment redirect has no location");
-      url = new URL(location, url);
+      url = redirectTarget(location, url, expectedPathname);
       continue;
     }
     if (response.status !== 200)
@@ -99,7 +106,13 @@ async function checkBuildAssets(html, url, secret, request) {
 
 async function checkDeepLink(url, secret, request) {
   const deepLink = new URL("/unknown-page", url);
-  const deepResponse = await requestOnOrigin(deepLink, url.origin, secret, request);
+  const deepResponse = await requestOnOrigin(
+    deepLink,
+    url.origin,
+    secret,
+    request,
+    deepLink.pathname,
+  );
   if (
     !/^text\/html\b/i.test(deepResponse.headers.get("content-type") ?? "") ||
     !/<div\s+id=["']root["']\s*><\/div>/i.test(await deepResponse.text())
@@ -121,7 +134,7 @@ async function checkStaticIcon(url, secret, request) {
 
 export async function smokeDeployment(value, secret, request = fetch) {
   const url = deploymentOrigin(value);
-  const response = await requestOnOrigin(url, url.origin, secret, request);
+  const response = await requestOnOrigin(url, url.origin, secret, request, url.pathname);
   const html = await response.text();
   if (
     !/^text\/html\b/i.test(response.headers.get("content-type") ?? "") ||

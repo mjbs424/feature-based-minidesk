@@ -53,6 +53,58 @@ test("checks the deployed application and its built assets", async () => {
   ]);
 });
 
+test("deep-link redirects must preserve the requested path", async () => {
+  for (const location of ["/unknown-page", "/"]) {
+    let deepRequests = 0;
+    const request = async (target) => {
+      if (target.pathname === "/unknown-page" && deepRequests++ === 0)
+        return new Response(null, { status: 302, headers: { location } });
+      const contentType = target.pathname.endsWith(".js")
+        ? "text/javascript"
+        : target.pathname.endsWith(".css")
+          ? "text/css"
+          : target.pathname.endsWith(".svg")
+            ? "image/svg+xml"
+            : "text/html";
+      const body =
+        target.pathname === "/" || target.pathname === "/unknown-page"
+          ? html
+          : target.pathname === "/favicon.svg"
+            ? "<svg></svg>"
+            : "built asset";
+      return new Response(body, {
+        headers: { ...secureBuildOutputConfig.routes[0].headers, "content-type": contentType },
+      });
+    };
+    if (location === "/") {
+      await assert.rejects(
+        smokeDeployment(url, "", request),
+        /Deployment redirected to a different path/,
+      );
+      assert.equal(deepRequests, 1);
+    } else {
+      await smokeDeployment(url, "", request);
+      assert.equal(deepRequests, 2);
+    }
+  }
+});
+
+test("rejects a root redirect to another path", async () => {
+  let calls = 0;
+  await assert.rejects(
+    smokeDeployment(url, "", async (target) => {
+      calls++;
+      if (target.pathname === "/")
+        return new Response(null, { status: 302, headers: { location: "/unknown-page" } });
+      return new Response(html, {
+        headers: { ...secureBuildOutputConfig.routes[0].headers, "content-type": "text/html" },
+      });
+    }),
+    /Deployment redirected to a different path/,
+  );
+  assert.equal(calls, 1);
+});
+
 test("rejects a missing dynamically imported route chunk", async () => {
   await assert.rejects(
     smokeDeployment(url, "", async (target) => {
