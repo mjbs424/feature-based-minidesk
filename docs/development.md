@@ -1,6 +1,6 @@
 # Development and contributing
 
-This guide describes the repository as it exists today. See [architecture.md](architecture.md) for folder ownership and dependency rules and [agent-workflow.md](agent-workflow.md) for task review and PR readiness. Tools planned in later tasks are not assumed to be installed or configured here.
+This guide owns local setup, commands, check coverage, CI, and deployment. See [agent-workflow.md](agent-workflow.md) for task review and PR readiness. Tools planned in later tasks are not assumed to be installed or configured here.
 
 ## Local setup
 
@@ -26,15 +26,19 @@ The Git pre-commit hook also needs Gitleaks and Semgrep on `PATH`. Semgrep's `p/
 | `node .github/scripts/security-audit.mjs` | Check high and critical dependency advisories against the repository's exception policy. |
 | `vp run preview`                          | Preview a local production build.                                                        |
 
-`vp run audit` and `security-audit.mjs` serve different purposes. The security script reads the `pnpm audit` report and the exception map. `vp test` is Vite+'s built-in test command, not the current `node --test` script. Use `vp run test`. Likewise, use `vp run build` to include the project's TypeScript build step. CI currently invokes equivalent pnpm commands from its workflow; this guide uses `vp` for local development.
+`vp run audit` and `security-audit.mjs` serve different purposes. The security script reads the `pnpm audit` report and the exception map. `vp test` is Vite+'s built-in test command, not the current `node --test` script. Use `vp run test`. The UI testing level and framework are not yet chosen. Likewise, use `vp run build` to include the project's TypeScript build step. CI currently invokes equivalent pnpm commands from its workflow; this guide uses `vp` for local development.
 
-## Change and pull request workflow
+When a script or command changes, audit this command list and the affected check coverage in the same PR.
 
-1. Branch from the latest `main`. Stage only files that belong to the change.
-2. Follow the ownership and dependency contracts in [architecture.md](architecture.md). Add folders and layers when they hold real code. Add tests where behavior warrants them.
-3. Before opening a pull request, run `vp check`, `vp run test`, `vp run build`, `vp run audit`, and `vp run doctor`. Run the security audit script when dependencies change. Inspect reports; Fallow's configured audit does not automatically gate every kind of finding.
-4. Commit from the repository root so the pre-commit hook runs. It runs React Doctor on staged files, `vp staged --hide-unstaged`, Gitleaks on staged files, Semgrep on `src` and `.github/scripts`, Fallow, and the dependency security check. It verifies the staged file set again after `vp staged`. The hook does not run `pnpm test`; CI runs it.
-5. Follow [the agent workflow](agent-workflow.md) for independent specialist reviews and the full PR loop. Open a pull request against `main`. Describe the purpose, decisions, checks run, and known limitations. Review CI and Preview results, and address valid review findings in the same pull request. The user performs the final merge.
+## Check coverage
+
+For full local verification, run `vp check`, `vp run test`, `vp run build`, `vp run audit`, and `vp run doctor`. Run the security audit script when dependencies change. Inspect reports; Fallow's configured audit does not automatically gate every kind of finding.
+
+The bundle-size check measures built JavaScript and CSS, not every static asset. The current Lighthouse check visits only the starter route, so it does not establish performance coverage for future feature routes. Interpret both reports within these limits.
+
+Fallow ignores the TypeScript import resolver's unused-dependency warning because Oxlint loads that package by its `typescript` resolver name from configuration.
+
+The pre-commit hook runs React Doctor on staged files, `vp staged --hide-unstaged`, Gitleaks on staged files, Semgrep on `src` and `.github/scripts`, Fallow, and the dependency security check. It verifies the staged file set again after `vp staged`. The hook does not run `pnpm test`; CI runs it.
 
 ## CI and deployment
 

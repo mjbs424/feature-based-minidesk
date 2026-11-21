@@ -1,16 +1,17 @@
 # Documentation map and maintenance
 
-`AGENTS.md` is the short entry point. Each topic below has one owner. Keep new project documentation in English. Existing Persian research notes are inputs to review and remain in their current language until the user approves their revision.
+`AGENTS.md` is the short, always-loaded entry point. Each topic below has one owner; read only the topics relevant to the task. Keep new project documentation in English. Existing Persian research notes remain in their current language until the user approves their revision.
 
-| Topic                                        | Source of truth                                   | When to read or update                                                                                                           |
-| -------------------------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Product intent and feature scope             | [product.md](product.md)                          | Read for feature work; update only after a product decision.                                                                     |
-| Visual direction and design references       | [design.md](design.md), with images in `public/`  | Read before UI work; update when a visual decision or asset changes.                                                             |
-| Code ownership, imports, routing boundaries  | [architecture.md](architecture.md)                | Read before source changes; update with an architecture contract change.                                                         |
-| Remote data flow and unsettled API decisions | [api.md](api.md)                                  | Read before remote data work; update once the API contract is chosen.                                                            |
-| Local setup, checks, hook, CI, deployment    | [development.md](development.md)                  | Read before validation or delivery; update with scripts or workflow changes.                                                     |
-| Agent task lifecycle and review              | [agent-workflow.md](agent-workflow.md)            | Read for every task; update when the accepted workflow changes.                                                                  |
-| Current work queue                           | `inprogress.md` when present on the active branch | Read for context after the user assigns a task; it does not authorize an agent to select work or prove a candidate is installed. |
+| Topic                                        | Source of truth                                    | When to read or update                                                                                                           |
+| -------------------------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Product intent and feature scope             | [product.md](product.md)                           | Read for feature work; update only after a product decision.                                                                     |
+| Visual direction and design references       | [design.md](design.md), with images in `public/`   | Read before UI work; update when a visual decision or asset changes.                                                             |
+| Code ownership, imports, routing boundaries  | [architecture.md](architecture.md)                 | Read before source changes; update with an architecture contract change.                                                         |
+| Remote data flow and unsettled API decisions | [api.md](api.md)                                   | Read before remote data work; update once the API contract is chosen.                                                            |
+| Local setup, checks, hook, CI, deployment    | [development.md](development.md)                   | Read before validation or delivery; update with scripts or workflow changes.                                                     |
+| Agent task lifecycle and review              | [agent-workflow.md](agent-workflow.md)             | Read for every task: section 1 before the first edit; remaining steps at their stages. Update when the workflow changes.         |
+| Independent documentation review             | [documentation-review.md](documentation-review.md) | Give to a separate reviewer whenever documentation changes; update the brief when its review criteria change.                    |
+| Current work queue                           | `inprogress.md` when present on the active branch  | Read for context after the user assigns a task; it does not authorize an agent to select work or prove a candidate is installed. |
 
 ## Future artifacts
 
@@ -22,6 +23,6 @@
 
 ## Change discipline
 
-The agent implementing a change maintains the relevant source documents in the same PR. A changed script requires a command audit in `AGENTS.md` and `development.md`; a changed dependency rule requires an architecture audit; a design change requires checking the image references and design guide; an API decision requires updating `api.md` and the affected feature spec. Check links and remove outdated statements rather than adding a second explanation elsewhere.
+The task owner updates only the affected source documents in the same PR. Change `AGENTS.md` only when the always-needed rules or document selection map change. Check links and remove outdated statements rather than adding a second explanation elsewhere.
 
-Research reports are evidence, not binding instructions. For a repeatable ambiguity, ask the user and save the answer in the owning document or skill before applying it broadly. State unresolved choices plainly. Keep examples and paths accurate against the repository, and avoid empty folders made only to illustrate a possible architecture.
+Research reports are evidence, not binding instructions. State unresolved choices plainly. For a repeatable ambiguity, ask the user and record the answer in the owning document or skill before applying it broadly. Keep examples and paths accurate against the repository, and avoid empty folders made only to illustrate a possible architecture. The [documentation reviewer](documentation-review.md) independently checks these properties whenever a document changes.

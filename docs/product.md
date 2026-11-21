@@ -10,4 +10,4 @@ MiniDesk is a small, feature-based React application with three planned pages: T
 
 Implement a feature from its approved spec, not from image text or illustrative numbers. For each feature, define the user journey, data ownership, empty/loading/error/success states where applicable, keyboard and mobile behavior, and acceptance evidence before committing to functionality. Spec Kit is planned for a later evaluation; it has not produced these specs yet. Put future feature specifications under `specs/<feature>/` as described in [documentation.md](documentation.md).
 
-The application and new project documentation are in English; existing Persian research reports stay in Persian until the user approves their revision. The project's [README](../README.md) explains the tooling and deployment purpose; [architecture](architecture.md), [API contract](api.md), and [design](design.md) own implementation constraints. The research reports at the repository root are background, not approved product requirements.
+Research reports inform planning; they are not approved feature specifications.
