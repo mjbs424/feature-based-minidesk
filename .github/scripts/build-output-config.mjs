@@ -1,4 +1,4 @@
-export const secureBuildOutputConfig = {
+const legacyBuildOutputConfig = {
   version: 3,
   routes: [
     {
@@ -15,11 +15,11 @@ export const secureBuildOutputConfig = {
   ],
 };
 
-// Deploy runs from main, so approve the SPA artifact before its feature branch merges.
-const secureSpaBuildOutputConfig = {
-  ...secureBuildOutputConfig,
+// Serve existing static files first, then rewrite client-side routes to the SPA shell.
+export const secureBuildOutputConfig = {
+  ...legacyBuildOutputConfig,
   routes: [
-    ...secureBuildOutputConfig.routes,
+    ...legacyBuildOutputConfig.routes,
     { handle: "filesystem" },
     { src: "/(.*)", dest: "/index.html" },
   ],
@@ -29,7 +29,7 @@ export function assertTrustedBuildOutputConfig(config) {
   const serialized = JSON.stringify(config);
   if (
     serialized !== JSON.stringify(secureBuildOutputConfig) &&
-    serialized !== JSON.stringify(secureSpaBuildOutputConfig)
+    serialized !== JSON.stringify(legacyBuildOutputConfig)
   ) {
     throw new Error("Unexpected build output configuration");
   }
