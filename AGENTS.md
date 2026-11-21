@@ -22,4 +22,5 @@ Before any edit, read [workflow section 1](docs/agent-workflow.md#1-scope-and-im
 - Work within the assigned scope. The user decides which tasks run in parallel; coordinate shared files and never change another task's branch or worktree.
 - Do not treat a mockup, research note, or unfinished task as an approved requirement. Do not introduce unapproved dependencies, tools, frameworks, or architectural decisions. Ask before making an unclear repeatable decision; record the answer in its owning guide, spec, or skill.
 - Update affected documentation and links in the same change. Keep one source of truth per topic instead of copying contracts into agent adapters or unrelated guides.
+- Never rewrite a commit that has been pushed. Put every follow-up change in a new commit and push normally; do not force-push.
 - Verify claims with the relevant checks and report the evidence and its limits. The user makes the final merge decision; never merge a PR on the user's behalf.
