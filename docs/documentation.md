@@ -16,10 +16,14 @@
 ## Future artifacts
 
 - Put an actual feature's goal, scenarios, state behavior, data needs, and acceptance criteria in `specs/<feature>/`. Create a spec when that feature is commissioned. Spec Kit evaluation belongs to T31; this map does not install it or prescribe its generated layout.
-- Put durable architecture or tool decisions that need their rationale in `docs/decisions/`, one short record per decision. Link the resulting rule from the topic document. Do not create a decision record for a routine edit.
+- Put user-authorized decision records in `docs/decisions/`, one short record per decision. Link the resulting rule from its topic document. Do not create a decision record for a routine edit.
 - Put a reusable project skill under `.agents/skills/<name>/SKILL.md` after its trigger, inputs, outputs, and compatible agents are tested. Skill selection and portability belong to later tasks. A skill points to these source documents instead of duplicating them.
 - Put API schemas, samples, mocks, and generated types where the eventual API task decides. Do not create a placeholder schema or example response before the data contract exists.
 - Use `CLAUDE.md` only as a pointer to `AGENTS.md`. Add another tool adapter only if the tool actually needs one, and verify that it loads the shared guide.
+
+## Decision records
+
+When an architecture, tool, technology, or workflow choice has meaningful alternatives or an important project-specific rationale, explain the choice to the user and ask whether to record it as an ADR. Create the record only after explicit approval. Capture the problem, decision drivers, options actually considered, outcome, and material trade-offs and consequences; do not invent a comparison that did not happen. Use `Proposed` for an undecided choice and `Accepted` only for an approved one. Keep the operational rule in its owning topic guide and link to the ADR for its rationale.
 
 ## Change discipline
 
