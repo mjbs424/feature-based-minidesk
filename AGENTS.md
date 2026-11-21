@@ -1,6 +1,6 @@
 # MiniDesk agent guide
 
-MiniDesk is a feature-based React and TypeScript frontend for To-do, Expenses, and Focus. The app currently shows a starter page; the design images are references, not implemented features.
+MiniDesk is a feature-based React and TypeScript frontend for To-do, Expenses, Focus, and Real-user monitoring. The four routes currently show coming-soon pages; the design images are references, not implemented features.
 
 ## Start with the relevant context
 

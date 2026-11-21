@@ -12,6 +12,8 @@ export const secureBuildOutputConfig = {
       },
       continue: true,
     },
+    { handle: "filesystem" },
+    { src: "/(.*)", dest: "/index.html" },
   ],
 };
 

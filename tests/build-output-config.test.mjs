@@ -19,6 +19,15 @@ test("accepts only the intended security headers on the new build output", () =>
 
 test("rejects artifact routes that could serve a different destination", () => {
   const altered = structuredClone(secureBuildOutputConfig);
-  altered.routes[0].dest = "https://example.com";
+  altered.routes[2].dest = "https://example.com";
   assert.throws(() => assertTrustedBuildOutputConfig(altered), /Unexpected build output/);
+});
+
+test("serves existing files before the SPA fallback and keeps headers on both", () => {
+  assert.deepEqual(secureBuildOutputConfig.routes.slice(1), [
+    { handle: "filesystem" },
+    { src: "/(.*)", dest: "/index.html" },
+  ]);
+  assert.equal(secureBuildOutputConfig.routes[0].continue, true);
+  assert.ok(secureBuildOutputConfig.routes[0].headers["Content-Security-Policy"]);
 });

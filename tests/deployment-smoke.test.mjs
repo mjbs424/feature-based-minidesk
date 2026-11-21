@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { smokeDeployment, smokeTarget } from "../.github/scripts/deployment-smoke.mjs";
+import { secureBuildOutputConfig } from "../.github/scripts/build-output-config.mjs";
 
 const url = "https://minidesk-preview.vercel.app/";
 const html =
@@ -19,21 +20,57 @@ test("checks the deployed application and its built assets", async () => {
   const seen = [];
   await smokeDeployment(url, "test-secret", async (target, options) => {
     seen.push([target.pathname, options.headers["x-vercel-protection-bypass"]]);
-    return new Response(target.pathname === "/" ? html : "built asset", {
-      headers: {
-        "content-type": target.pathname.endsWith(".js")
-          ? "text/javascript; charset=utf-8"
-          : target.pathname.endsWith(".css")
-            ? "text/css; charset=utf-8"
-            : "text/html",
+    return new Response(
+      target.pathname === "/" || target.pathname === "/unknown-page"
+        ? html
+        : target.pathname === "/favicon.svg"
+          ? "<svg></svg>"
+          : target.pathname === "/assets/app-123.js"
+            ? 'const chunks = ["assets/routes-123.js", "assets/routes-123.css"]'
+            : "built asset",
+      {
+        headers: {
+          ...secureBuildOutputConfig.routes[0].headers,
+          "content-type": target.pathname.endsWith(".js")
+            ? "text/javascript; charset=utf-8"
+            : target.pathname.endsWith(".css")
+              ? "text/css; charset=utf-8"
+              : target.pathname.endsWith(".svg")
+                ? "image/svg+xml"
+                : "text/html",
+        },
       },
-    });
+    );
   });
   assert.deepEqual(seen, [
     ["/", "test-secret"],
     ["/assets/app-123.js", "test-secret"],
     ["/assets/app-123.css", "test-secret"],
+    ["/assets/routes-123.js", "test-secret"],
+    ["/assets/routes-123.css", "test-secret"],
+    ["/unknown-page", "test-secret"],
+    ["/favicon.svg", "test-secret"],
   ]);
+});
+
+test("rejects a missing dynamically imported route chunk", async () => {
+  await assert.rejects(
+    smokeDeployment(url, "", async (target) => {
+      if (target.pathname === "/") {
+        return new Response(html, { headers: { "content-type": "text/html" } });
+      }
+      if (target.pathname === "/assets/app-123.js") {
+        return new Response('import("./routes-123.js")', {
+          headers: { "content-type": "text/javascript" },
+        });
+      }
+      if (target.pathname === "/assets/routes-123.js") {
+        return new Response("fallback", { headers: { "content-type": "text/html" } });
+      }
+      return new Response("asset", { headers: { "content-type": "text/css" } });
+    }),
+    /Unexpected asset content type/,
+  );
 });
 
 test("rejects an HTML fallback for an asset and an interrupted asset transfer", async () => {

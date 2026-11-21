@@ -1,5 +1,6 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { secureBuildOutputConfig } from "./build-output-config.mjs";
 
 export function smokeTarget(event, deploymentUrl) {
   if (event === "push") return "https://feature-based-minidesk.vercel.app/";
@@ -55,7 +56,67 @@ async function checkAsset(asset, origin, secret, request) {
     : ["text/javascript", "application/javascript"];
   if (!expected.includes(contentType))
     throw new Error(`Unexpected asset content type: ${asset.pathname}`);
-  await response.arrayBuffer();
+  return asset.pathname.endsWith(".js") ? response.text() : response.arrayBuffer();
+}
+
+function referencedBuildAssets(javascript, base) {
+  return [
+    ...javascript.matchAll(/["'`]((?:\.\/|\/)?(?:assets\/)?[A-Za-z0-9_-]+\.(?:js|css))["'`]/g),
+  ].map(
+    ([, reference]) => new URL(reference.startsWith("assets/") ? `/${reference}` : reference, base),
+  );
+}
+
+function checkSecurityHeaders(response, pathname) {
+  for (const [name, expected] of Object.entries(secureBuildOutputConfig.routes[0].headers)) {
+    if (response.headers.get(name) !== expected) {
+      throw new Error(`Missing or changed security header on ${pathname}: ${name}`);
+    }
+  }
+}
+
+async function checkBuildAssets(html, url, secret, request) {
+  const assets = [...html.matchAll(/\b(?:src|href)=["'](\/assets\/[^"']+\.(?:js|css))["']/gi)].map(
+    (match) => new URL(match[1], url),
+  );
+  if (
+    !assets.some((asset) => asset.pathname.endsWith(".js")) ||
+    !assets.some((asset) => asset.pathname.endsWith(".css"))
+  )
+    throw new Error("Deployment page has no built JavaScript or stylesheet");
+  const checked = new Set();
+  const queue = [...assets];
+  while (queue.length) {
+    if (checked.size > 50) throw new Error("Too many build assets in deployment smoke test");
+    const asset = queue.shift();
+    if (checked.has(asset.href)) continue;
+    checked.add(asset.href);
+    const body = await checkAsset(asset, url.origin, secret, request);
+    if (asset.pathname.endsWith(".js")) queue.push(...referencedBuildAssets(body, asset));
+  }
+  return checked.size;
+}
+
+async function checkDeepLink(url, secret, request) {
+  const deepLink = new URL("/unknown-page", url);
+  const deepResponse = await requestOnOrigin(deepLink, url.origin, secret, request);
+  if (
+    !/^text\/html\b/i.test(deepResponse.headers.get("content-type") ?? "") ||
+    !/<div\s+id=["']root["']\s*><\/div>/i.test(await deepResponse.text())
+  )
+    throw new Error("Deep link did not return the application page");
+  checkSecurityHeaders(deepResponse, deepLink.pathname);
+}
+
+async function checkStaticIcon(url, secret, request) {
+  const icon = new URL("/favicon.svg", url);
+  const iconResponse = await requestOnOrigin(icon, url.origin, secret, request);
+  if (
+    !/^image\/svg\+xml\b/i.test(iconResponse.headers.get("content-type") ?? "") ||
+    !(await iconResponse.text()).includes("<svg")
+  )
+    throw new Error("Static icon was not served as SVG");
+  checkSecurityHeaders(iconResponse, icon.pathname);
 }
 
 export async function smokeDeployment(value, secret, request = fetch) {
@@ -67,19 +128,13 @@ export async function smokeDeployment(value, secret, request = fetch) {
     !/<div\s+id=["']root["']\s*><\/div>/i.test(html)
   )
     throw new Error("Deployment did not return the application page");
-
-  const assets = [...html.matchAll(/\b(?:src|href)=["'](\/assets\/[^"']+\.(?:js|css))["']/gi)].map(
-    (match) => new URL(match[1], url),
+  const assetCount = await checkBuildAssets(html, url, secret, request);
+  checkSecurityHeaders(response, "/");
+  await checkDeepLink(url, secret, request);
+  await checkStaticIcon(url, secret, request);
+  console.log(
+    `Smoke test passed: application page, deep link, static icon and ${assetCount} assets`,
   );
-  if (
-    !assets.some((asset) => asset.pathname.endsWith(".js")) ||
-    !assets.some((asset) => asset.pathname.endsWith(".css"))
-  )
-    throw new Error("Deployment page has no built JavaScript or stylesheet");
-  for (const asset of assets) {
-    await checkAsset(asset, url.origin, secret, request);
-  }
-  console.log(`Smoke test passed: application page and ${assets.length} assets`);
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
