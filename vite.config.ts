@@ -18,7 +18,7 @@ export default defineConfig({
     "*": "vp check --fix",
   },
   fmt: {
-    ignorePatterns: ["src/routes/routeTree.gen.ts"],
+    ignorePatterns: ["src/routes/routeTree.gen.ts", ".agents/skills/**"],
   },
   lint: {
     plugins: ["react", "typescript", "oxc"],

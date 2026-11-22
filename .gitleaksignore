@@ -1,0 +1,3 @@
+# Public WebCrypto API usage names in vendored GoogleChrome documentation, not credentials.
+.agents/skills/modern-web-guidance/guides/security/client-side-encryption.md:generic-api-key:187
+.agents/skills/modern-web-guidance/guides/security/client-side-encryption.md:generic-api-key:201
