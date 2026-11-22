@@ -4,6 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, lazyPlugins } from "vite-plus";
 import { fileURLToPath } from "node:url";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -109,5 +110,15 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] }),
     tailwindcss(),
+    ...(!process.env.CI && !process.env.VERCEL
+      ? [
+          visualizer({
+            filename: ".bundle-analysis/report.html",
+            open: true,
+            gzipSize: true,
+            brotliSize: true,
+          }),
+        ]
+      : []),
   ]),
 });
