@@ -51,7 +51,8 @@ visual implementation.
 
 ## Ownership and naming
 
-`src/app` owns application bootstrap, global providers, and top-level composition.
+`src/app` owns application bootstrap, the single stable TanStack Query client and
+provider, and top-level composition.
 `src/routes` owns URL-to-page adapters, not feature behavior. Each feature owns its
 page, feature-specific UI, domain rules, state, validation, and API operations.
 `shared` is for code that is independent of any feature's domain vocabulary;
