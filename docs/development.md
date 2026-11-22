@@ -20,13 +20,15 @@ The Git pre-commit hook also needs Gitleaks and Semgrep on `PATH`. Semgrep's `p/
 | `vp dev`                                  | Start the development server.                                                            |
 | `vp check`                                | Check formatting, lint, and types across the project.                                    |
 | `vp run test`                             | Run the current Node tests from the project script.                                      |
-| `vp run build`                            | Type-check and create the production build through the project script.                   |
+| `vp run build`                            | Type-check and build; locally open a bundle analysis report after the build.             |
 | `vp run audit`                            | Run the configured Fallow audit.                                                         |
 | `vp run doctor`                           | Run React Doctor.                                                                        |
 | `node .github/scripts/security-audit.mjs` | Check high and critical dependency advisories against the repository's exception policy. |
 | `vp run preview`                          | Preview a local production build.                                                        |
 
 `vp run audit` and `security-audit.mjs` serve different purposes. The security script reads the `pnpm audit` report and the exception map. `vp test` is Vite+'s built-in test command, not the current `node --test` script. Use `vp run test`. The UI testing level and framework are not yet chosen. Likewise, use `vp run build` to include the project's TypeScript build step. CI currently invokes equivalent pnpm commands from its workflow; this guide uses `vp` for local development.
+
+Local builds open `.bundle-analysis/report.html` with an interactive view of the built modules and chunks, including gzip and Brotli sizes. The report is ignored by Git and is outside `dist`, so it is not deployed. CI and Vercel builds do not run the analyzer; the existing bundle-size check remains the deployment budget gate.
 
 When a script or command changes, audit this command list and the affected check coverage in the same PR.
 
