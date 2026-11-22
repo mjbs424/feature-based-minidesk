@@ -16,7 +16,7 @@ Use a Widely available feature without a compatibility fallback when its behavio
 
 The skill's source is the [GoogleChrome repository](https://github.com/GoogleChrome/modern-web-guidance). The repository-local `skills-lock.json` records the installed source commit; the CLI version used for this setup is 1.0.1. Review upstream changes before refreshing the skill or CLI rather than silently changing guidance during a task.
 The optional `--skill-version` argument in upstream examples supplies update notices and telemetry metadata; it does not select the CLI's guide catalog. The pinned CLI version controls that catalog.
-The vendored skill files are excluded from formatting by `.prettierignore` so an update does not rewrite upstream content; project-authored files still follow the normal formatting checks.
+The vendored skill files are excluded from Oxfmt through `fmt.ignorePatterns` in `vite.config.ts` so an update does not rewrite upstream content; project-authored files still follow the normal formatting checks.
 Two public WebCrypto API examples in the vendored encryption guide match Gitleaks' generic key rule. `.gitleaksignore` exempts only those two file/line findings; review the fingerprints again whenever the skill is updated.
 
 ## Legacy-pattern audit and modernization
