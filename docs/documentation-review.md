@@ -1,6 +1,6 @@
-# Documentation reviewer brief
+# Documentation self-review brief
 
-This is an **independent review role**, not a separate source of project requirements. The task owner requests it whenever documentation or agent instructions change. Read the task request, changed documents, their owning topic in the [documentation map](documentation.md), and only the code/configuration or linked guides needed to verify claims. Do not edit the implementation or count the author's self-review as independent.
+Use this brief whenever documentation or agent instructions change. Read the task request, changed documents, their owning topic in the [documentation map](documentation.md), and only the code/configuration or linked guides needed to verify claims. This is a checklist for the task owner's self-review, not an independent-review requirement.
 
 Review every changed document for:
 
