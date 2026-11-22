@@ -8,11 +8,9 @@ The current focus is the agent guidance and tooling section. Other work can proc
 
 ## Architecture and development foundations
 
-| ID  | Open task                                                       | Expected outcome                                                                                                                                                                      |
-| --- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T04 | TanStack Router                                                 | Verify the four placeholder routes, navigation, 404, lazy chunks, and direct URLs on the deployed Preview after the user pushes this branch. Local routing and build are implemented. |
-| T05 | TanStack Query                                                  | Set up the approved data library and define query keys, caching, mutations, errors, loading, and invalidation when data requirements are known.                                       |
-| T06 | [OpenAPI TypeScript](https://openapi-ts.dev/) and the API layer | Choose a schema source, type generation, schema change checks, and the API call contract. Keep the choice open until a real API contract exists.                                      |
+| ID  | Open task                                                       | Expected outcome                                                                                                                                 |
+| --- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| T06 | [OpenAPI TypeScript](https://openapi-ts.dev/) and the API layer | Choose a schema source, type generation, schema change checks, and the API call contract. Keep the choice open until a real API contract exists. |
 
 ## Testing strategy and experience quality
 
