@@ -15,12 +15,13 @@ export default defineConfig({
     open: true,
   },
   staged: {
-    "*": "vp check --fix",
+    "*.{js,jsx,ts,tsx,mjs,cjs,mts,cts,css}": "vp check --fix",
   },
   fmt: {
     ignorePatterns: ["src/routes/routeTree.gen.ts", ".agents/skills/**"],
   },
   lint: {
+    ignorePatterns: [".agents/skills/**"],
     plugins: ["react", "typescript", "oxc"],
     jsPlugins: [
       { name: "vite-plus", specifier: "vite-plus/oxlint-plugin" },
