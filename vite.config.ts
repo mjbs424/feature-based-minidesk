@@ -15,7 +15,7 @@ export default defineConfig({
     open: true,
   },
   staged: {
-    "*.{js,jsx,ts,tsx,mjs,cjs,mts,cts,css}": "vp check --fix",
+    "*": "vp check --fix",
   },
   fmt: {
     ignorePatterns: ["src/routes/routeTree.gen.ts", ".agents/skills/**"],
