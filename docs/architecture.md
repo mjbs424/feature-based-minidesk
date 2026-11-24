@@ -45,7 +45,7 @@ specific composition and behavior inside the owning feature. Review generated
 components for accessibility in their actual use, including keyboard behavior,
 labels, focus states, and contrast.
 
-Before creating a shared component or variant, inspect `src/shared/ui`, `components.json`, and Storybook stories when available. Reuse its existing API where it meets the approved design. Extend the component and document its variants in stories when a real requirement differs. The common route shell belongs to `src/app`; feature pages should use it through the router, not duplicate its navigation.
+Before creating a shared component or variant, inspect `src/shared/ui`, `components.json`, and Storybook stories when available. Reuse its existing API where it meets the approved design. Extend the component when a real requirement differs; document its variants in stories when Storybook is available, or in the relevant existing feature spec or UI guide until then. The common route shell belongs to `src/app`; feature pages should use it through the router, not duplicate its navigation.
 
 The planned page appearances are documented in [design.md](design.md) and the
 reference images in `public/`. The current coming-soon pages are not the final
