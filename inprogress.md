@@ -27,17 +27,15 @@ The current focus is the agent guidance and tooling section. Other work can proc
 
 ## Agent guidance, skills, and documentation
 
-| ID  | Open task                                                                    | Expected outcome                                                                                                                                    |
-| --- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T28 | [Modern Web Guidance](https://developer.chrome.com/docs/modern-web-guidance) | Investigate and trial Chrome's web-development guidance for agents; measure its effect on actual project work.                                      |
-| T29 | Vercel Agent Skills                                                          | Review React and Vercel skills, compatibility with current tooling, and which guidance is worth keeping in the project.                             |
-| T30 | Superpowers                                                                  | Evaluate its workflows and skills, process cost, and fit with this project's development approach.                                                  |
-| T31 | [Spec Kit](https://github.com/github/spec-kit)                               | Trial writing a feature spec and turning it into tasks and tests; choose a documentation level suited to the project.                               |
-| T32 | BMAD                                                                         | Compare its agent roles with Spec Kit and the current workflow through a small practical trial.                                                     |
-| T33 | Anthropic Skills                                                             | Review the skill format, portability, versioning needs, and reliable use in this project.                                                           |
-| T34 | Context7                                                                     | Assess access to current library documentation, access limits, and its effect on technical decisions.                                               |
-| T35 | Serena                                                                       | Evaluate semantic code navigation and editing, security, and fit for this TypeScript project.                                                       |
-| T36 | Final agent-tool evaluation                                                  | Trial a common real task, record results, select a small compatible toolset, document its use for feature development, and record rejected choices. |
+| ID  | Open task                                      | Expected outcome                                                                                                                                    |
+| --- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T30 | Superpowers                                    | Evaluate its workflows and skills, process cost, and fit with this project's development approach.                                                  |
+| T31 | [Spec Kit](https://github.com/github/spec-kit) | Trial writing a feature spec and turning it into tasks and tests; choose a documentation level suited to the project.                               |
+| T32 | BMAD                                           | Compare its agent roles with Spec Kit and the current workflow through a small practical trial.                                                     |
+| T33 | Anthropic Skills                               | Review the skill format, portability, versioning needs, and reliable use in this project.                                                           |
+| T34 | Context7                                       | Assess access to current library documentation, access limits, and its effect on technical decisions.                                               |
+| T35 | Serena                                         | Evaluate semantic code navigation and editing, security, and fit for this TypeScript project.                                                       |
+| T36 | Final agent-tool evaluation                    | Trial a common real task, record results, select a small compatible toolset, document its use for feature development, and record rejected choices. |
 
 ## Later review after feature implementation
 

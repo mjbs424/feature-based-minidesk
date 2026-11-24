@@ -2,17 +2,18 @@
 
 `AGENTS.md` is the short, always-loaded entry point. Each topic below has one owner; read only the topics relevant to the task. Keep new project documentation in English. Existing Persian research notes remain in their current language until the user approves their revision.
 
-| Topic                                          | Source of truth                                    | When to read or update                                                                                                           |
-| ---------------------------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Product intent and feature scope               | [product.md](product.md)                           | Read for feature work; update only after a product decision.                                                                     |
-| Visual direction and design references         | [design.md](design.md), with images in `public/`   | Read before UI work; update when a visual decision or asset changes.                                                             |
-| Code ownership, imports, routing boundaries    | [architecture.md](architecture.md)                 | Read before source changes; update with an architecture contract change.                                                         |
-| Remote data flow and unsettled API decisions   | [api.md](api.md)                                   | Read before remote data work; update once the API contract is chosen.                                                            |
-| Local setup, checks, hook, CI, deployment      | [development.md](development.md)                   | Read before validation or delivery; update with scripts or workflow changes.                                                     |
-| Browser feature target and Modern Web Guidance | [modern-web-guidance.md](modern-web-guidance.md)   | Read for web UI, CSS, browser API work, or a legacy-pattern audit; update when the target or workflow changes.                   |
-| Agent task lifecycle and review                | [agent-workflow.md](agent-workflow.md)             | Read for every task: section 1 before the first edit; remaining steps at their stages. Update when the workflow changes.         |
-| Documentation self-review                      | [documentation-review.md](documentation-review.md) | Use whenever documentation changes; update the brief when its review criteria change.                                            |
-| Current work queue                             | `inprogress.md` when present on the active branch  | Read for context after the user assigns a task; it does not authorize an agent to select work or prove a candidate is installed. |
+| Topic                                           | Source of truth                                    | When to read or update                                                                                                                              |
+| ----------------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Product intent and feature scope                | [product.md](product.md)                           | Read for feature work; update only after a product decision.                                                                                        |
+| Visual direction and design references          | [design.md](design.md), with images in `public/`   | Read before UI work; update when a visual decision or asset changes.                                                                                |
+| Code ownership, imports, routing boundaries     | [architecture.md](architecture.md)                 | Read before source changes; update with an architecture contract change.                                                                            |
+| Remote data flow and unsettled API decisions    | [api.md](api.md)                                   | Read before remote data work; update once the API contract is chosen.                                                                               |
+| Local setup, checks, hook, CI, deployment       | [development.md](development.md)                   | Read before validation or delivery; update with scripts or workflow changes.                                                                        |
+| Browser feature target and Modern Web Guidance  | [modern-web-guidance.md](modern-web-guidance.md)   | Read for web UI, CSS, browser API work, or a legacy-pattern audit; update when the target or workflow changes.                                      |
+| Vercel skills for React and deployment analysis | [vercel-agent-skills.md](vercel-agent-skills.md)   | Read for React performance, component composition, or an explicit Vercel cost/performance audit; update when skill scope or version policy changes. |
+| Agent task lifecycle and review                 | [agent-workflow.md](agent-workflow.md)             | Read for every task: section 1 before the first edit; remaining steps at their stages. Update when the workflow changes.                            |
+| Documentation self-review                       | [documentation-review.md](documentation-review.md) | Use whenever documentation changes; update the brief when its review criteria change.                                                               |
+| Current work queue                              | `inprogress.md` when present on the active branch  | Read for context after the user assigns a task; it does not authorize an agent to select work or prove a candidate is installed.                    |
 
 ## Future artifacts
 

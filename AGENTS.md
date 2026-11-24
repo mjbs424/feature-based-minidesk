@@ -6,19 +6,22 @@ MiniDesk is a feature-based React and TypeScript frontend for To-do, Expenses, F
 
 Read the request, current diff, and any approved task or feature spec. Apply every matching row; open only the guides needed for the work:
 
-| Work                          | Guide                                                                                                                        |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Product behavior              | [Product](docs/product.md)                                                                                                   |
-| Feature UI                    | [Product behavior](docs/product.md), [design rules and visual references](docs/design.md)                                    |
-| Web UI, CSS, browser APIs     | [Modern Web Guidance policy](docs/modern-web-guidance.md) and [installed skill](.agents/skills/modern-web-guidance/SKILL.md) |
-| Any source code change        | [Architecture](docs/architecture.md)                                                                                         |
-| Remote data                   | [API](docs/api.md)                                                                                                           |
-| Scripts, commands, checks, CI | [Development](docs/development.md)                                                                                           |
-| Documentation changes         | [Documentation map](docs/documentation.md)                                                                                   |
+| Work                                                              | Guide                                                                                                                        |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Product behavior                                                  | [Product](docs/product.md)                                                                                                   |
+| Feature UI                                                        | [Product behavior](docs/product.md), [design rules and visual references](docs/design.md)                                    |
+| Web UI, CSS, browser APIs                                         | [Modern Web Guidance policy](docs/modern-web-guidance.md) and [installed skill](.agents/skills/modern-web-guidance/SKILL.md) |
+| React performance, component composition, or Vercel cost analysis | [Vercel skill policy](docs/vercel-agent-skills.md) and the matching installed skill                                          |
+| Any source code change                                            | [Architecture](docs/architecture.md)                                                                                         |
+| Remote data                                                       | [API](docs/api.md)                                                                                                           |
+| Scripts, commands, checks, CI                                     | [Development](docs/development.md)                                                                                           |
+| Documentation changes                                             | [Documentation map](docs/documentation.md)                                                                                   |
 
 Before any edit, read [workflow section 1](docs/agent-workflow.md#1-scope-and-implement) and confirm the task's scope and checkout. Follow the verification, review, and PR steps at the stages specified there. Check actual code and configuration before assuming a tool, route, test, or API exists.
 
 The project's web-platform target is **Baseline Widely available**. For relevant frontend work, use the installed Modern Web Guidance skill to search and retrieve focused guidance before choosing browser APIs; follow its fallback advice for features outside that target. Run the CLI version pinned in the policy guide (currently 1.0.1), including when upstream skill examples show `@latest`; scope any command approval to that version. Disable CLI telemetry for repository work. Check proposed patterns against the project's React components, design rules, and feature boundaries. See the policy guide for modernization scans and evaluation.
+
+For React performance and reusable component API work, use only the applicable rules from the installed Vercel skills, as scoped in the Vercel skill policy. For a requested Vercel cost or deployment performance audit, read that policy before opening `vercel-optimize`; its framework and metrics prerequisites apply.
 
 ## Rules for every task
 

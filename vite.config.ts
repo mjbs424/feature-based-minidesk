@@ -21,6 +21,7 @@ export default defineConfig({
     ignorePatterns: ["src/routes/routeTree.gen.ts", ".agents/skills/**"],
   },
   lint: {
+    ignorePatterns: [".agents/skills/**"],
     plugins: ["react", "typescript", "oxc"],
     jsPlugins: [
       { name: "vite-plus", specifier: "vite-plus/oxlint-plugin" },
