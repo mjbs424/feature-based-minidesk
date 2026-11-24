@@ -12,12 +12,13 @@
 | Browser feature target and Modern Web Guidance  | [modern-web-guidance.md](modern-web-guidance.md)   | Read for web UI, CSS, browser API work, or a legacy-pattern audit; update when the target or workflow changes.                                      |
 | Vercel skills for React and deployment analysis | [vercel-agent-skills.md](vercel-agent-skills.md)   | Read for React performance, component composition, or an explicit Vercel cost/performance audit; update when skill scope or version policy changes. |
 | Agent task lifecycle and review                 | [agent-workflow.md](agent-workflow.md)             | Read for every task: section 1 before the first edit; remaining steps at their stages. Update when the workflow changes.                            |
+| Product phases, feature intake, UI reuse        | [feature-delivery.md](feature-delivery.md)         | Read for a new feature, assigned phase, or shared UI task; update when phase scope or task prerequisites change.                                    |
 | Documentation self-review                       | [documentation-review.md](documentation-review.md) | Use whenever documentation changes; update the brief when its review criteria change.                                                               |
 | Current work queue                              | `inprogress.md` when present on the active branch  | Read for context after the user assigns a task; it does not authorize an agent to select work or prove a candidate is installed.                    |
 
 ## Future artifacts
 
-- Put an actual feature's goal, scenarios, state behavior, data needs, and acceptance criteria in `specs/<feature>/`. Create a spec when that feature is commissioned. Spec Kit evaluation belongs to T31; this map does not install it or prescribe its generated layout.
+- Put an actual feature's approved goal, scenarios, state behavior, data needs, and acceptance criteria in `specs/<feature>/`. Use the installed Spec Kit workflow for `spec.md`, `plan.md`, and `tasks.md` when that feature is commissioned. The constitution in `.specify/memory/constitution.md` summarizes project constraints for generation; topic guides remain the source of truth.
 - Put user-authorized decision records in `docs/decisions/`, one short record per decision. Link the resulting rule from its topic document. Do not create a decision record for a routine edit.
 - Put a reusable project skill under `.agents/skills/<name>/SKILL.md` after its trigger, inputs, outputs, and compatible agents are tested. Skill selection and portability belong to later tasks. A skill points to these source documents instead of duplicating them.
 - Put API schemas, samples, mocks, and generated types where the eventual API task decides. Do not create a placeholder schema or example response before the data contract exists.

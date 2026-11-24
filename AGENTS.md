@@ -9,6 +9,7 @@ Read the request, current diff, and any approved task or feature spec. Apply eve
 | Work                                                              | Guide                                                                                                                        |
 | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | Product behavior                                                  | [Product](docs/product.md)                                                                                                   |
+| New feature or assigned phase                                     | [Feature delivery map](docs/feature-delivery.md), [planning skill](.agents/skills/minidesk-feature-planning/SKILL.md)        |
 | Feature UI                                                        | [Product behavior](docs/product.md), [design rules and visual references](docs/design.md)                                    |
 | Web UI, CSS, browser APIs                                         | [Modern Web Guidance policy](docs/modern-web-guidance.md) and [installed skill](.agents/skills/modern-web-guidance/SKILL.md) |
 | React performance, component composition, or Vercel cost analysis | [Vercel skill policy](docs/vercel-agent-skills.md) and the matching installed skill                                          |
@@ -18,6 +19,8 @@ Read the request, current diff, and any approved task or feature spec. Apply eve
 | Documentation changes                                             | [Documentation map](docs/documentation.md)                                                                                   |
 
 Before any edit, read [workflow section 1](docs/agent-workflow.md#1-scope-and-implement) and confirm the task's scope and checkout. Follow the verification, review, and PR steps at the stages specified there. Check actual code and configuration before assuming a tool, route, test, or API exists.
+
+For new features, refine the idea with the applicable Superpowers skills, then use the installed Spec Kit skills to produce the approved spec, plan, and selectable tasks. Use the [feature delivery map](docs/feature-delivery.md) for the shared layout phase and four feature phases. For an assigned task, implement only its approved scope. Repository guides and the user's assignment take precedence over generic skill suggestions about stack, branches, worktrees, or extra approvals.
 
 The project's web-platform target is **Baseline Widely available**. For relevant frontend work, use the installed Modern Web Guidance skill to search and retrieve focused guidance before choosing browser APIs; follow its fallback advice for features outside that target. Run the CLI version pinned in the policy guide (currently 1.0.1), including when upstream skill examples show `@latest`; scope any command approval to that version. Disable CLI telemetry for repository work. Check proposed patterns against the project's React components, design rules, and feature boundaries. See the policy guide for modernization scans and evaluation.
 
