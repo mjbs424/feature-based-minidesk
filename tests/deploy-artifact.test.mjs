@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  isUntrustedFunctionPreview,
   resolveTrustedPrNumber,
   validateDeployArtifact,
 } from "../.github/scripts/deploy-artifact.mjs";
@@ -16,6 +17,29 @@ const run = {
   headBranch: "feature-branch",
 };
 const artifact = { event: "pull_request", pr: 48, sha, runSha: mergeSha };
+
+test("only fork Function previews are excluded from the shared Preview project", () => {
+  assert.equal(
+    isUntrustedFunctionPreview("minidesk", "pull_request", run.headRepository, run.repository),
+    true,
+  );
+  assert.equal(
+    isUntrustedFunctionPreview("minidesk", "pull_request", undefined, run.repository),
+    true,
+  );
+  assert.equal(
+    isUntrustedFunctionPreview("minidesk", "pull_request", run.repository, run.repository),
+    false,
+  );
+  assert.equal(
+    isUntrustedFunctionPreview("static", "pull_request", run.headRepository, run.repository),
+    false,
+  );
+  assert.equal(
+    isUntrustedFunctionPreview("minidesk", "push", run.headRepository, run.repository),
+    false,
+  );
+});
 
 test("accepts only the run's exact PR head and PR number", () => {
   assert.equal(validateDeployArtifact(artifact, run), 48);

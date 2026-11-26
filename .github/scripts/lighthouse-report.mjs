@@ -111,6 +111,15 @@ async function main() {
   const action = process.argv[2];
   if (action === "pending")
     return report(env, manifest, "pending", "Waiting for Lighthouse measurements", null, options);
+  if (action === "skipped")
+    return report(
+      env,
+      manifest,
+      "success",
+      "Lighthouse not run: Function preview skipped for fork",
+      null,
+      options,
+    );
   if (action === "failed")
     return report(
       env,
@@ -133,7 +142,7 @@ async function main() {
           options,
         ),
     );
-  throw new Error("Expected pending, check or failed");
+  throw new Error("Expected pending, skipped, check or failed");
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {

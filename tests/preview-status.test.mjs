@@ -61,6 +61,30 @@ test("deployment failure points to the workflow and never reports success", asyn
   assert.equal(data.posts[0].target_url, "https://github.com/owner/repo/actions/runs/123");
 });
 
+test("fork Function skip closes preview status without claiming a deployed URL", async () => {
+  const data = fixture("skipped");
+  data.env.RUN_HEAD_REPO = "contributor/repo";
+  data.env.PREVIEW_URL = "";
+  data.request = async (url, options) => {
+    if (url.endsWith("/pulls/4"))
+      return Response.json({
+        ...pr,
+        head: { ...pr.head, repo: { full_name: "contributor/repo" } },
+      });
+    if (options.method === "POST" && url.includes("/statuses/")) {
+      data.posts.push(JSON.parse(options.body));
+      return Response.json({});
+    }
+    throw new Error(`Unexpected GitHub request: ${url}`);
+  };
+  await reportPreviewStatus(data);
+  assert.equal(data.posts.length, 2);
+  assert.ok(
+    data.posts.every((post) => post.state === "success" && post.description.includes("skipped")),
+  );
+  assert.ok(data.posts.every((post) => post.target_url.includes("/actions/runs/")));
+});
+
 test("rejects an artifact for another commit before posting any status", async () => {
   const data = fixture("success", { artifact: { ...manifest, sha: "c".repeat(40) } });
   await assert.rejects(reportPreviewStatus(data), /Artifact does not match/);
