@@ -79,7 +79,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
-          PREVIEW_STATE: ${{ job.status == 'success' && 'success' || 'failure' }}
+          PREVIEW_STATE: ${{ steps.deploy.outputs.preview_skipped == 'true' && 'skipped' || job.status == 'success' && 'success' || 'failure' }}
           PREVIEW_URL: ${{ steps.deploy.outputs.preview_url }}
         run: node .github/scripts/preview-status.mjs
       - uses: pnpm/action-setup@v6
@@ -106,12 +106,19 @@ jobs:
           RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
         run: node .github/scripts/bundle-size.mjs failed
       - name: Mark Lighthouse pending
-        if: always() && job.status == 'success' && steps.deploy.outcome == 'success' && github.event.workflow_run.event == 'pull_request'
+        if: always() && job.status == 'success' && steps.deploy.outputs.preview_url != '' && github.event.workflow_run.event == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
         run: node .github/scripts/lighthouse-report.mjs pending
+      - name: Mark Lighthouse skipped for fork Function
+        if: always() && steps.deploy.outputs.preview_skipped == 'true' && github.event.workflow_run.event == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+        run: node .github/scripts/lighthouse-report.mjs skipped
 
   lighthouse:
     needs: deploy

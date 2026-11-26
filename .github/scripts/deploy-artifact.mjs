@@ -1,5 +1,9 @@
 const shaPattern = /^[a-f0-9]{40}$/;
 
+export function isUntrustedFunctionPreview(outputKind, runEvent, headRepository, repository) {
+  return runEvent === "pull_request" && outputKind === "minidesk" && headRepository !== repository;
+}
+
 export async function resolveTrustedPrNumber(github, run) {
   const direct = Number(run.prNumber);
   if (Number.isSafeInteger(direct) && direct > 0) return direct;
