@@ -368,7 +368,7 @@ export async function withState<T>(
       path.startsWith("tasks/");
     const rows = canChangeState
       ? await tx`SELECT window_start, dataset_id, write_count FROM minidesk_generation WHERE id = 1 FOR UPDATE`
-      : await tx`SELECT window_start, dataset_id, write_count FROM minidesk_generation WHERE id = 1`;
+      : await tx`SELECT window_start, dataset_id, write_count FROM minidesk_generation WHERE id = 1 FOR SHARE`;
     const row = rows[0];
     const state = await loadState(tx, Number(row.write_count), path, method);
     const before = canChangeState ? structuredClone(state) : null;
