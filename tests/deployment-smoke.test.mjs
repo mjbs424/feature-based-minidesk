@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { smokeDeployment, smokeTarget } from "../.github/scripts/deployment-smoke.mjs";
+import {
+  smokeDeployment,
+  smokeProductionDeployment,
+  smokeTarget,
+} from "../.github/scripts/deployment-smoke.mjs";
 import { secureBuildOutputConfig } from "../.github/scripts/build-output-config.mjs";
 
 const url = "https://minidesk-preview.vercel.app/";
@@ -79,6 +83,51 @@ test("rejects an invalid MiniDesk API media type", async () => {
     smokeDeployment(url, "", (target) => fixtureResponse(target, "application/json-invalid")),
     /MiniDesk API returned unexpected headers/,
   );
+});
+
+test("production smoke waits for the public alias to serve the MiniDesk API", async () => {
+  let apiRequests = 0;
+  let pauses = 0;
+  await smokeProductionDeployment(
+    url,
+    (target) => {
+      if (target.pathname === apiPath && apiRequests++ === 0)
+        return new Response(html, {
+          headers: { ...secureBuildOutputConfig.routes[0].headers, "content-type": "text/html" },
+        });
+      return fixtureResponse(target);
+    },
+    async () => {
+      pauses++;
+    },
+  );
+  assert.equal(apiRequests, 2);
+  assert.equal(pauses, 1);
+});
+
+test("production smoke still fails when the API never becomes valid", async () => {
+  let apiRequests = 0;
+  let pauses = 0;
+  await assert.rejects(
+    smokeProductionDeployment(
+      url,
+      (target) => {
+        if (target.pathname === apiPath) {
+          apiRequests++;
+          return new Response(html, {
+            headers: { ...secureBuildOutputConfig.routes[0].headers, "content-type": "text/html" },
+          });
+        }
+        return fixtureResponse(target);
+      },
+      async () => {
+        pauses++;
+      },
+    ),
+    /Content-Type=text\/html; Cache-Control=missing/,
+  );
+  assert.equal(apiRequests, 13);
+  assert.equal(pauses, 12);
 });
 
 test("checks a static deployment without requesting the MiniDesk API", async () => {
