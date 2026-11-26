@@ -6,6 +6,45 @@ import { secureBuildOutputConfig } from "../.github/scripts/build-output-config.
 const url = "https://minidesk-preview.vercel.app/";
 const html =
   '<div id="root"></div><script src="/assets/app-123.js"></script><link href="/assets/app-123.css" rel="stylesheet">';
+const apiPath = "/api/minidesk/v1/demo";
+const responses = new Map([
+  ["/", [html, "text/html"]],
+  ["/unknown-page", [html, "text/html"]],
+  ["/favicon.svg", ["<svg></svg>", "image/svg+xml"]],
+  [
+    "/assets/app-123.js",
+    [
+      'const chunks = ["assets/routes-123.js", "assets/routes-123.css"]',
+      "text/javascript; charset=utf-8",
+    ],
+  ],
+  ["/assets/app-123.css", ["built asset", "text/css; charset=utf-8"]],
+  ["/assets/routes-123.js", ["built asset", "text/javascript; charset=utf-8"]],
+  ["/assets/routes-123.css", ["built asset", "text/css; charset=utf-8"]],
+  [
+    apiPath,
+    [
+      JSON.stringify({
+        datasetId: "dataset",
+        currency: "USD",
+        timeZone: "UTC",
+        serverNow: "2026-11-26T00:00:00.000Z",
+        resetAt: "2026-11-26T12:00:00.000Z",
+      }),
+      "Application/JSON; charset=utf-8",
+    ],
+  ],
+]);
+
+function fixtureResponse(target, apiContentType = "Application/JSON; charset=utf-8") {
+  const [body, contentType] = responses.get(target.pathname);
+  const headers = {
+    ...secureBuildOutputConfig.routes[0].headers,
+    "content-type": target.pathname === apiPath ? apiContentType : contentType,
+  };
+  if (target.pathname === apiPath) headers["cache-control"] = "no-store";
+  return new Response(body, { headers });
+}
 
 test("uses the public production domain and the exact preview deployment URL", () => {
   assert.equal(
@@ -20,38 +59,7 @@ test("checks the deployed application and its built assets", async () => {
   const seen = [];
   const request = async (target, options) => {
     seen.push([target.pathname, options.headers["x-vercel-protection-bypass"]]);
-    return new Response(
-      target.pathname === "/api/minidesk/v1/demo"
-        ? JSON.stringify({
-            datasetId: "dataset",
-            currency: "USD",
-            timeZone: "UTC",
-            serverNow: "2026-11-26T00:00:00.000Z",
-            resetAt: "2026-11-26T12:00:00.000Z",
-          })
-        : target.pathname === "/" || target.pathname === "/unknown-page"
-          ? html
-          : target.pathname === "/favicon.svg"
-            ? "<svg></svg>"
-            : target.pathname === "/assets/app-123.js"
-              ? 'const chunks = ["assets/routes-123.js", "assets/routes-123.css"]'
-              : "built asset",
-      {
-        headers: {
-          ...secureBuildOutputConfig.routes[0].headers,
-          "content-type": target.pathname.endsWith(".js")
-            ? "text/javascript; charset=utf-8"
-            : target.pathname === "/api/minidesk/v1/demo"
-              ? "Application/JSON; charset=utf-8"
-              : target.pathname.endsWith(".css")
-                ? "text/css; charset=utf-8"
-                : target.pathname.endsWith(".svg")
-                  ? "image/svg+xml"
-                  : "text/html",
-          ...(target.pathname === "/api/minidesk/v1/demo" ? { "cache-control": "no-store" } : {}),
-        },
-      },
-    );
+    return fixtureResponse(target);
   };
   await smokeDeployment(url, "test-secret", request);
   assert.deepEqual(seen, [
@@ -67,40 +75,8 @@ test("checks the deployed application and its built assets", async () => {
 });
 
 test("rejects an invalid MiniDesk API media type", async () => {
-  const request = async (target) => {
-    const api = target.pathname === "/api/minidesk/v1/demo";
-    const contentType = api
-      ? "application/json-invalid"
-      : target.pathname.endsWith(".js")
-        ? "text/javascript"
-        : target.pathname.endsWith(".css")
-          ? "text/css"
-          : target.pathname.endsWith(".svg")
-            ? "image/svg+xml"
-            : "text/html";
-    const body = api
-      ? JSON.stringify({
-          datasetId: "dataset",
-          currency: "USD",
-          timeZone: "UTC",
-          serverNow: "2026-11-26T00:00:00.000Z",
-          resetAt: "2026-11-26T12:00:00.000Z",
-        })
-      : target.pathname === "/" || target.pathname === "/unknown-page"
-        ? html
-        : target.pathname.endsWith(".svg")
-          ? "<svg></svg>"
-          : "built asset";
-    return new Response(body, {
-      headers: {
-        ...secureBuildOutputConfig.routes[0].headers,
-        "content-type": contentType,
-        ...(api ? { "cache-control": "no-store" } : {}),
-      },
-    });
-  };
   await assert.rejects(
-    smokeDeployment(url, "", request),
+    smokeDeployment(url, "", (target) => fixtureResponse(target, "application/json-invalid")),
     /MiniDesk API returned unexpected headers/,
   );
 });
@@ -112,26 +88,7 @@ test("checks a static deployment without requesting the MiniDesk API", async () 
     "",
     async (target) => {
       seen.push(target.pathname);
-      const contentType = target.pathname.endsWith(".js")
-        ? "text/javascript"
-        : target.pathname.endsWith(".css")
-          ? "text/css"
-          : target.pathname.endsWith(".svg")
-            ? "image/svg+xml"
-            : "text/html";
-      return new Response(
-        target.pathname === "/" || target.pathname === "/unknown-page"
-          ? html
-          : target.pathname.endsWith(".svg")
-            ? "<svg></svg>"
-            : "built asset",
-        {
-          headers: {
-            ...secureBuildOutputConfig.routes[0].headers,
-            "content-type": contentType,
-          },
-        },
-      );
+      return fixtureResponse(target);
     },
     "static",
   );
@@ -144,36 +101,7 @@ test("deep-link redirects must preserve the requested path", async () => {
     const request = async (target) => {
       if (target.pathname === "/unknown-page" && deepRequests++ === 0)
         return new Response(null, { status: 302, headers: { location } });
-      const contentType = target.pathname.endsWith(".js")
-        ? "text/javascript"
-        : target.pathname === "/api/minidesk/v1/demo"
-          ? "application/json"
-          : target.pathname.endsWith(".css")
-            ? "text/css"
-            : target.pathname.endsWith(".svg")
-              ? "image/svg+xml"
-              : "text/html";
-      const body =
-        target.pathname === "/api/minidesk/v1/demo"
-          ? JSON.stringify({
-              datasetId: "dataset",
-              currency: "USD",
-              timeZone: "UTC",
-              serverNow: "2026-11-26T00:00:00.000Z",
-              resetAt: "2026-11-26T12:00:00.000Z",
-            })
-          : target.pathname === "/" || target.pathname === "/unknown-page"
-            ? html
-            : target.pathname === "/favicon.svg"
-              ? "<svg></svg>"
-              : "built asset";
-      return new Response(body, {
-        headers: {
-          ...secureBuildOutputConfig.routes[0].headers,
-          "content-type": contentType,
-          ...(target.pathname === "/api/minidesk/v1/demo" ? { "cache-control": "no-store" } : {}),
-        },
-      });
+      return fixtureResponse(target);
     };
     if (location === "/") {
       await assert.rejects(
