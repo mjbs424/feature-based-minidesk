@@ -1,4 +1,11 @@
 {
+  "entry": ["api/minidesk/v1.ts"],
+  "health": {
+    "ignore": ["api/minidesk/**", "server/minidesk/**"]
+  },
+  "duplicates": {
+    "ignore": ["api/minidesk/**", "server/minidesk/**"]
+  },
   "ignoreBinaries": ["vercel", "lhci"],
   "ignoreDependencies": ["eslint-import-resolver-typescript"]
 }

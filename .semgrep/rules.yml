@@ -1,0 +1,50 @@
+rules:
+  - id: no-eval
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Avoid eval; it can execute attacker-controlled code.
+    pattern: eval(...)
+
+  - id: no-function-constructor
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Avoid the Function constructor; it evaluates generated code.
+    pattern: new Function(...)
+
+  - id: no-shell-execution
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Avoid a shell subprocess; use an argument array with shell disabled.
+    patterns:
+      - pattern-either:
+          - pattern: exec(...)
+          - pattern: execSync(...)
+          - pattern: $PROCESS.exec(...)
+          - pattern: $PROCESS.execSync(...)
+      - pattern-inside: |
+          import { ... } from "node:child_process";
+          ...
+
+  - id: no-shell-option
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Do not enable a shell for a subprocess.
+    pattern: "shell: true"
+
+  - id: no-insecure-tls
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: TLS certificate verification must remain enabled.
+    pattern: "rejectUnauthorized: false"
+
+  - id: no-inner-html-assignment
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Avoid assigning HTML strings directly; use safe DOM APIs.
+    pattern: $ELEMENT.innerHTML = $VALUE
+
+  - id: no-dangerous-react-html
+    languages: [typescript]
+    severity: ERROR
+    message: Review HTML injection instead of using dangerouslySetInnerHTML.
+    pattern-regex: 'dangerouslySetInnerHTML\s*='

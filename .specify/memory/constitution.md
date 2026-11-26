@@ -4,7 +4,7 @@
 
 ### I. Preserve the existing product and stack
 
-Read `docs/product.md`, `docs/design.md`, `docs/architecture.md`, `docs/api.md`, and the actual configuration before specifying a feature. Preserve their established contracts. A new technology or architecture is an optional proposal, never an implicit requirement of a feature.
+Read `docs/product.md`, `docs/design.md`, `docs/architecture.md`, `docs/api.md`, and the relevant frontend configuration before specifying a feature. Preserve their established contracts. Use T06/OpenAPI for remote-data details once available; do not inspect the demo backend to derive frontend contracts. A new technology or architecture is an optional proposal, never an implicit requirement of a feature.
 
 ### II. Specify approved behavior
 
@@ -26,4 +26,4 @@ Apply risk-appropriate tests, browser checks, accessibility review, build and CI
 
 `AGENTS.md` routes to the source documents; each topic guide owns its contract. Keep this constitution a short set of planning principles and pointers, not a parallel copy of `architecture.md` or another guide. Before amending it, compare the proposed rule with the owning guide and actual configuration. Update the owning guide first or in the same change, then keep only the necessary pointer here; resolve any conflict rather than allowing the two versions to diverge. The user's current assignment and the owning guide govern details, and generated specs must remain consistent with them.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-24 | **Last Amended**: 2026-11-24
+**Version**: 1.1.0 | **Ratified**: 2026-11-24 | **Last Amended**: 2026-11-24
