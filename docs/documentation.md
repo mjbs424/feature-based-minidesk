@@ -1,6 +1,6 @@
 # Documentation map and maintenance
 
-`AGENTS.md` is the short, always-loaded entry point. Each topic below has one owner; read only the topics relevant to the task. Keep new project documentation in English. Existing Persian research notes remain in their current language until the user approves their revision.
+`AGENTS.md` is the short, always-loaded entry point. Each topic below has one owner; read only the sections needed for the current step and defer later-stage guides until that work begins. Keep new project documentation in English. Existing Persian research notes remain in their current language until the user approves their revision.
 
 | Topic                                           | Source of truth                                    | When to read or update                                                                                                                              |
 | ----------------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -8,9 +8,11 @@
 | Visual direction and design references          | [design.md](design.md), with images in `public/`   | Read before UI work; update when a visual decision or asset changes.                                                                                |
 | Code ownership, imports, routing boundaries     | [architecture.md](architecture.md)                 | Read before source changes; update with an architecture contract change.                                                                            |
 | Remote data flow and unsettled API decisions    | [api.md](api.md)                                   | Read before remote data work; update once the API contract is chosen.                                                                               |
-| Local setup, checks, hook, CI, deployment       | [development.md](development.md)                   | Read before validation or delivery; update with scripts or workflow changes.                                                                        |
+| First-time setup: app, hooks, agent tools       | [agent-tooling-setup.md](agent-tooling-setup.md)   | Read only on a new machine or when investigating a failed tool; owns all installation instructions.                                                 |
+| Development commands, checks, hook, CI          | [development.md](development.md)                   | Read the relevant section before validation or delivery; update with script or workflow changes.                                                    |
 | Browser feature target and Modern Web Guidance  | [modern-web-guidance.md](modern-web-guidance.md)   | Read for web UI, CSS, browser API work, or a legacy-pattern audit; update when the target or workflow changes.                                      |
 | Vercel skills for React and deployment analysis | [vercel-agent-skills.md](vercel-agent-skills.md)   | Read for React performance, component composition, or an explicit Vercel cost/performance audit; update when skill scope or version policy changes. |
+| Optional agent skills and MCP usage             | [agent-tooling.md](agent-tooling.md)               | Read the relevant section for version-sensitive library APIs, visual skill selection, or cross-file symbolic navigation.                            |
 | Agent task lifecycle and review                 | [agent-workflow.md](agent-workflow.md)             | Read for every task: section 1 before the first edit; remaining steps at their stages. Update when the workflow changes.                            |
 | Product phases, feature intake, UI reuse        | [feature-delivery.md](feature-delivery.md)         | Read for a new feature, assigned phase, or shared UI task; update when phase scope or task prerequisites change.                                    |
 | Documentation self-review                       | [documentation-review.md](documentation-review.md) | Use whenever documentation changes; update the brief when its review criteria change.                                                               |
@@ -20,7 +22,7 @@
 
 - Put an actual feature's approved goal, scenarios, state behavior, data needs, and acceptance criteria in `specs/<feature>/`. Use the installed Spec Kit workflow for `spec.md`, `plan.md`, and `tasks.md` when that feature is commissioned. The constitution in `.specify/memory/constitution.md` summarizes project constraints for generation; topic guides remain the source of truth.
 - Put user-authorized decision records in `docs/decisions/`, one short record per decision. Link the resulting rule from its topic document. Do not create a decision record for a routine edit.
-- Put a reusable project skill under `.agents/skills/<name>/SKILL.md` after its trigger, inputs, outputs, and compatible agents are tested. Skill selection and portability belong to later tasks. A skill points to these source documents instead of duplicating them.
+- Put a reusable project skill under `.agents/skills/<name>/SKILL.md` after its trigger, inputs, outputs, and compatible agents are tested. Follow [agent-tooling.md](agent-tooling.md) for optional skill and MCP use. A skill points to these source documents instead of duplicating them.
 - Put API schemas, samples, mocks, and generated types where the eventual API task decides. Do not create a placeholder schema or example response before the data contract exists.
 - Use `CLAUDE.md` only as a pointer to `AGENTS.md`. Add another tool adapter only if the tool actually needs one, and verify that it loads the shared guide.
 
