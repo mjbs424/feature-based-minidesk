@@ -1,6 +1,7 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { secureBuildOutputConfig } from "./build-output-config.mjs";
+import { readFile } from "node:fs/promises";
+import { assertTrustedBuildOutputConfig, secureBuildOutputConfig } from "./build-output-config.mjs";
 
 export function smokeTarget(event, deploymentUrl) {
   if (event === "push") return "https://feature-based-minidesk.vercel.app/";
@@ -132,7 +133,33 @@ async function checkStaticIcon(url, secret, request) {
   checkSecurityHeaders(iconResponse, icon.pathname);
 }
 
-export async function smokeDeployment(value, secret, request = fetch) {
+function isValidMiniDeskDemo(body) {
+  const serverNow = Date.parse(body?.serverNow);
+  const resetAt = Date.parse(body?.resetAt);
+  return [
+    typeof body?.datasetId === "string",
+    body?.currency === "USD",
+    body?.timeZone === "UTC",
+    Number.isFinite(serverNow),
+    Number.isFinite(resetAt),
+    resetAt > serverNow,
+  ].every(Boolean);
+}
+
+async function checkMiniDeskApi(url, secret, request) {
+  const endpoint = new URL("/api/minidesk/v1/demo", url);
+  const response = await requestOnOrigin(endpoint, url.origin, secret, request);
+  if (
+    !/^application\/json\b/i.test(response.headers.get("content-type") ?? "") ||
+    response.headers.get("cache-control") !== "no-store"
+  )
+    throw new Error("MiniDesk API returned unexpected headers");
+  const body = await response.json();
+  if (!isValidMiniDeskDemo(body)) throw new Error("MiniDesk API returned an invalid demo response");
+  checkSecurityHeaders(response, endpoint.pathname);
+}
+
+export async function smokeDeployment(value, secret, request = fetch, outputKind = "minidesk") {
   const url = deploymentOrigin(value);
   const response = await requestOnOrigin(url, url.origin, secret, request, url.pathname);
   const html = await response.text();
@@ -145,14 +172,18 @@ export async function smokeDeployment(value, secret, request = fetch) {
   checkSecurityHeaders(response, "/");
   await checkDeepLink(url, secret, request);
   await checkStaticIcon(url, secret, request);
+  if (outputKind === "minidesk") await checkMiniDeskApi(url, secret, request);
   console.log(
-    `Smoke test passed: application page, deep link, static icon and ${assetCount} assets`,
+    `Smoke test passed: application page, deep link, static icon${outputKind === "minidesk" ? ", MiniDesk API" : ""} and ${assetCount} assets`,
   );
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
+  const config = JSON.parse(await readFile("bundle/.vercel/output/config.json", "utf8"));
   await smokeDeployment(
     smokeTarget(process.env.RUN_EVENT, process.env.DEPLOYMENT_URL),
     process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+    fetch,
+    assertTrustedBuildOutputConfig(config),
   );
 }

@@ -3,6 +3,8 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { removePrDeployments, vercel } from "./cleanup.mjs";
 import { assertTrustedBuildOutputConfig } from "./build-output-config.mjs";
+import { authorizePreviewDeployment } from "./preview-authorization.mjs";
+import { resolveTrustedPrNumber, validateDeployArtifact } from "./deploy-artifact.mjs";
 
 const repo = process.env.GITHUB_REPOSITORY;
 const [owner, name] = (repo ?? "").split("/");
@@ -14,14 +16,6 @@ const manifest = JSON.parse(await readFile("bundle/manifest.json", "utf8"));
 if (!owner || !name || !ghToken || !/^[a-f0-9]{40}$/.test(sha ?? "")) {
   throw new Error("Missing trusted GitHub run information");
 }
-if (
-  manifest.event !== runEvent ||
-  (manifest.runSha !== sha && manifest.sha !== sha) ||
-  !/^[a-f0-9]{40}$/.test(manifest.sha ?? "")
-) {
-  throw new Error("Artifact does not match the successful workflow run");
-}
-
 async function github(route, options = {}) {
   const response = await fetch(`https://api.github.com/repos/${repo}${route}`, {
     ...options,
@@ -36,8 +30,25 @@ async function github(route, options = {}) {
   return response.status === 204 ? null : response.json();
 }
 
+const trustedPrNumber =
+  runEvent === "pull_request"
+    ? await resolveTrustedPrNumber(github, {
+        prNumber: process.env.RUN_PR_NUMBER,
+        headSha: sha,
+        headRepository: process.env.RUN_HEAD_REPO,
+        headBranch: process.env.RUN_HEAD_BRANCH,
+      })
+    : null;
+const prNumber = validateDeployArtifact(manifest, {
+  event: runEvent,
+  headSha: sha,
+  prNumber: trustedPrNumber,
+  repository: repo,
+  headRepository: process.env.RUN_HEAD_REPO,
+});
+
 async function currentPr() {
-  const pr = await github(`/pulls/${manifest.pr}`);
+  const pr = await github(`/pulls/${prNumber}`);
   return Object.values({
     open: pr.state === "open",
     base: pr.base.ref === "main",
@@ -47,30 +58,34 @@ async function currentPr() {
 }
 
 if (runEvent === "pull_request") {
-  if (!Number.isSafeInteger(manifest.pr) || manifest.pr < 1) throw new Error("Invalid PR metadata");
   if (!(await currentPr())) {
     console.log("PR closed or has a newer commit; skipping obsolete preview");
     process.exit(0);
   }
 } else if (runEvent === "push") {
-  if (manifest.pr !== null || process.env.GITHUB_REPOSITORY !== process.env.RUN_HEAD_REPO) {
-    throw new Error("Invalid production artifact metadata");
-  }
   const branch = await github("/branches/main");
   if (branch.commit.sha !== manifest.sha) {
     console.log("A newer main commit exists; skipping obsolete production deployment");
     process.exit(0);
   }
-} else {
-  throw new Error("Unsupported event type");
 }
 
-// Accept only the static Build Output API shape. Never execute artifact content.
+// Accept only the reviewed static and MiniDesk Function Build Output API shape.
 const source = "bundle/.vercel/output";
 const config = JSON.parse(await readFile(`${source}/config.json`, "utf8"));
-assertTrustedBuildOutputConfig(config);
+const outputKind = assertTrustedBuildOutputConfig(config);
+if (runEvent === "pull_request" && outputKind === "minidesk") {
+  await authorizePreviewDeployment(github, prNumber, manifest.sha);
+  if (!(await currentPr())) {
+    console.log("PR changed after preview authorization; skipping obsolete preview");
+    process.exit(0);
+  }
+}
 const roots = await readdir(source);
-if (roots.sort().join(",") !== "config.json,static")
+if (
+  roots.sort().join(",") !==
+  (outputKind === "minidesk" ? "config.json,functions,static" : "config.json,static")
+)
   throw new Error("Unexpected build output entries");
 async function validateTree(directory) {
   for (const entry of await readdir(directory)) {
@@ -81,6 +96,32 @@ async function validateTree(directory) {
   }
 }
 await validateTree(`${source}/static`);
+if (outputKind === "minidesk") {
+  const functions = `${source}/functions`;
+  if (
+    (await readdir(functions)).join(",") !== "api" ||
+    (await readdir(`${functions}/api`)).join(",") !== "minidesk" ||
+    (await readdir(`${functions}/api/minidesk`)).join(",") !== "v1.func"
+  )
+    throw new Error("Unexpected Function output path");
+  const functionFiles = await readdir(`${functions}/api/minidesk/v1.func`);
+  if (functionFiles.sort().join(",") !== ".vc-config.json,handler.cjs")
+    throw new Error("Unexpected Function output files");
+  await validateTree(`${functions}/api/minidesk/v1.func`);
+  const functionConfig = JSON.parse(
+    await readFile(`${functions}/api/minidesk/v1.func/.vc-config.json`, "utf8"),
+  );
+  if (
+    JSON.stringify(functionConfig) !==
+    JSON.stringify({
+      runtime: "nodejs24.x",
+      handler: "handler.cjs",
+      launcherType: "Nodejs",
+      shouldAddHelpers: false,
+    })
+  )
+    throw new Error("Unexpected Function configuration");
+}
 await rm(".vercel", { recursive: true, force: true });
 await mkdir(".vercel", { recursive: true });
 await writeFile(
@@ -95,7 +136,7 @@ await cp(source, ".vercel/output", { recursive: true });
 
 const args = ["deploy", "--prebuilt", "--yes", "--token", process.env.VERCEL_TOKEN];
 if (runEvent === "push") args.push("--prod");
-else args.push("--meta", `minideskPr=${manifest.pr}`, "--meta", `minideskSha=${manifest.sha}`);
+else args.push("--meta", `minideskPr=${prNumber}`, "--meta", `minideskSha=${manifest.sha}`);
 const result = spawnSync("vercel", args, { encoding: "utf8" });
 if (result.status !== 0) throw new Error(`Vercel deploy failed: ${result.stderr}`);
 const url = result.stdout.trim().split(/\s+/).at(-1);
@@ -109,16 +150,16 @@ if (process.env.GITHUB_OUTPUT) {
 
 if (runEvent === "pull_request") {
   if (!(await currentPr())) {
-    await removePrDeployments(manifest.pr);
+    await removePrDeployments(prNumber);
     console.log("PR changed during deployment; removed obsolete preview");
     process.exit(0);
   }
   const marker = "<!-- minidesk-preview -->";
   const deploymentId = await lookupDeployment(url);
-  const body = `${marker}\nPreview for PR #${manifest.pr}: ${url}\n\nCommit: \`${manifest.sha}\`. QA should review this commit before merge.`;
+  const body = `${marker}\nPreview for PR #${prNumber}: ${url}\n\nCommit: \`${manifest.sha}\`. QA should review this commit before merge.`;
   let existing;
   for (let page = 1; page < 20 && !existing; page++) {
-    const comments = await github(`/issues/${manifest.pr}/comments?per_page=100&page=${page}`);
+    const comments = await github(`/issues/${prNumber}/comments?per_page=100&page=${page}`);
     existing = comments.find(
       (comment) => comment.user?.type === "Bot" && comment.body?.includes(marker),
     );
@@ -130,12 +171,12 @@ if (runEvent === "pull_request") {
       body: JSON.stringify({ body }),
     });
   } else {
-    await github(`/issues/${manifest.pr}/comments`, {
+    await github(`/issues/${prNumber}/comments`, {
       method: "POST",
       body: JSON.stringify({ body }),
     });
   }
-  await removePrDeployments(manifest.pr, deploymentId);
+  await removePrDeployments(prNumber, deploymentId);
   if (process.env.GITHUB_OUTPUT) {
     await appendFile(process.env.GITHUB_OUTPUT, `preview_url=${url}\n`);
   }
@@ -146,7 +187,7 @@ async function lookupDeployment(deploymentUrl) {
   const detail = await vercel(`/v13/deployments/${host}`);
   if (
     detail.projectId !== process.env.VERCEL_PREVIEW_PROJECT_ID ||
-    detail.meta?.minideskPr !== String(manifest.pr)
+    detail.meta?.minideskPr !== String(prNumber)
   ) {
     throw new Error("Preview deployment does not belong to this PR/project");
   }
