@@ -3,7 +3,6 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { removePrDeployments, vercel } from "./cleanup.mjs";
 import { assertTrustedBuildOutputConfig } from "./build-output-config.mjs";
-import { authorizePreviewDeployment } from "./preview-authorization.mjs";
 import { resolveTrustedPrNumber, validateDeployArtifact } from "./deploy-artifact.mjs";
 
 const repo = process.env.GITHUB_REPOSITORY;
@@ -74,13 +73,6 @@ if (runEvent === "pull_request") {
 const source = "bundle/.vercel/output";
 const config = JSON.parse(await readFile(`${source}/config.json`, "utf8"));
 const outputKind = assertTrustedBuildOutputConfig(config);
-if (runEvent === "pull_request" && outputKind === "minidesk") {
-  await authorizePreviewDeployment(github, prNumber, manifest.sha);
-  if (!(await currentPr())) {
-    console.log("PR changed after preview authorization; skipping obsolete preview");
-    process.exit(0);
-  }
-}
 const roots = await readdir(source);
 if (
   roots.sort().join(",") !==
