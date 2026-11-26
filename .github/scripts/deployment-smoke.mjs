@@ -153,8 +153,11 @@ async function checkMiniDeskApi(url, secret, request) {
     .split(";", 1)[0]
     .trim()
     .toLowerCase();
-  if (contentType !== "application/json" || response.headers.get("cache-control") !== "no-store")
-    throw new Error("MiniDesk API returned unexpected headers");
+  const cacheControl = response.headers.get("cache-control");
+  if (contentType !== "application/json" || cacheControl !== "no-store")
+    throw new Error(
+      `MiniDesk API returned unexpected headers: Content-Type=${contentType || "missing"}; Cache-Control=${cacheControl ?? "missing"}`,
+    );
   const body = await response.json();
   if (!isValidMiniDeskDemo(body)) throw new Error("MiniDesk API returned an invalid demo response");
   checkSecurityHeaders(response, endpoint.pathname);
@@ -179,12 +182,31 @@ export async function smokeDeployment(value, secret, request = fetch, outputKind
   );
 }
 
+export async function smokeProductionDeployment(
+  value,
+  request = fetch,
+  pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+) {
+  deploymentOrigin(value);
+  for (let attempt = 1; attempt <= 13; attempt++) {
+    try {
+      await smokeDeployment(value, undefined, request);
+      return;
+    } catch (error) {
+      if (attempt === 13) throw error;
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`Production smoke attempt ${attempt} failed; retrying in 5 seconds: ${message}`);
+      await pause(5000);
+    }
+  }
+}
+
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
   const config = JSON.parse(await readFile("bundle/.vercel/output/config.json", "utf8"));
-  await smokeDeployment(
-    smokeTarget(process.env.RUN_EVENT, process.env.DEPLOYMENT_URL),
-    process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
-    fetch,
-    assertTrustedBuildOutputConfig(config),
-  );
+  const outputKind = assertTrustedBuildOutputConfig(config);
+  const target = smokeTarget(process.env.RUN_EVENT, process.env.DEPLOYMENT_URL);
+  if (process.env.RUN_EVENT === "push" && outputKind === "minidesk")
+    await smokeProductionDeployment(target);
+  else
+    await smokeDeployment(target, process.env.VERCEL_AUTOMATION_BYPASS_SECRET, fetch, outputKind);
 }
