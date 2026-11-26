@@ -13,7 +13,7 @@ This is the single installation guide for a new MiniDesk checkout. Once setup is
 
 1. Install [Gitleaks](https://github.com/gitleaks/gitleaks/releases) by extracting the binary for your platform to a directory on `PATH`. Open a new terminal and check `gitleaks version`.
 2. Install [uv](https://docs.astral.sh/uv/getting-started/installation/); on Windows, run `winget install --id=astral-sh.uv -e`. Open a new terminal and check `uvx --version`.
-3. Install [Semgrep](https://github.com/semgrep/semgrep#option-2-getting-started-from-the-cli) with `uv tool install semgrep` and check `semgrep --version`. If the command is not found, follow uv's `PATH` instructions and reopen the terminal.
+3. Install [Semgrep](https://github.com/semgrep/semgrep#option-2-getting-started-from-the-cli) with `uv tool install semgrep`. On an Intel Mac, use `uv tool install semgrep==1.182.1` instead; newer releases do not ship an Intel macOS scan engine. Check `semgrep --version`. If the command is not found, follow uv's `PATH` instructions and reopen the terminal.
 
 Gitleaks and Semgrep must be on `PATH` for local commits. See [development.md](development.md#check-coverage) for the hook's checks and failure behavior.
 
