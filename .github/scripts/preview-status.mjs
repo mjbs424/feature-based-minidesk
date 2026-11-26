@@ -16,7 +16,8 @@ function validateRun(env) {
 
 function validateState(env) {
   const state = env.PREVIEW_STATE;
-  if (!["pending", "success", "failure"].includes(state)) throw new Error("Invalid preview state");
+  if (!["pending", "success", "failure", "skipped"].includes(state))
+    throw new Error("Invalid preview state");
   if (state === "success" && !previewPattern.test(env.PREVIEW_URL ?? "")) {
     throw new Error("Successful preview has no valid deployment URL");
   }
@@ -71,8 +72,14 @@ function statusDetails(env) {
     pending: "Preview deployment is running",
     success: "Preview deployed successfully",
     failure: "Preview deployment failed; open workflow logs",
+    skipped: "Function preview skipped for fork PR",
   }[state];
-  return { state, context, description, target_url: targetUrl };
+  return {
+    state: state === "skipped" ? "success" : state,
+    context,
+    description,
+    target_url: targetUrl,
+  };
 }
 
 export async function reportPreviewStatus({

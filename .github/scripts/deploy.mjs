@@ -3,7 +3,11 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { removePrDeployments, vercel } from "./cleanup.mjs";
 import { assertTrustedBuildOutputConfig } from "./build-output-config.mjs";
-import { resolveTrustedPrNumber, validateDeployArtifact } from "./deploy-artifact.mjs";
+import {
+  isUntrustedFunctionPreview,
+  resolveTrustedPrNumber,
+  validateDeployArtifact,
+} from "./deploy-artifact.mjs";
 
 const repo = process.env.GITHUB_REPOSITORY;
 const [owner, name] = (repo ?? "").split("/");
@@ -56,10 +60,17 @@ async function currentPr() {
   }).every(Boolean);
 }
 
+async function skipPreview(message) {
+  console.log(message);
+  if (process.env.GITHUB_OUTPUT) {
+    await appendFile(process.env.GITHUB_OUTPUT, "preview_skipped=true\n");
+  }
+  process.exit(0);
+}
+
 if (runEvent === "pull_request") {
   if (!(await currentPr())) {
-    console.log("PR closed or has a newer commit; skipping obsolete preview");
-    process.exit(0);
+    await skipPreview("PR closed or has a newer commit; skipping obsolete preview");
   }
 } else if (runEvent === "push") {
   const branch = await github("/branches/main");
@@ -73,6 +84,11 @@ if (runEvent === "pull_request") {
 const source = "bundle/.vercel/output";
 const config = JSON.parse(await readFile(`${source}/config.json`, "utf8"));
 const outputKind = assertTrustedBuildOutputConfig(config);
+if (isUntrustedFunctionPreview(outputKind, runEvent, process.env.RUN_HEAD_REPO, repo)) {
+  await skipPreview(
+    "Fork PR contains a Function; skipping deployment to the shared Preview project",
+  );
+}
 const roots = await readdir(source);
 if (
   roots.sort().join(",") !==

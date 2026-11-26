@@ -39,7 +39,7 @@ The pre-commit hook runs React Doctor on staged files, `vp staged --hide-unstage
 
 CI runs for pull requests and pushes to `main`. It installs from the lockfile, runs Gitleaks, the dependency security audit, `vp check`, tests, Fallow, React Doctor, and the build. The verified build is uploaded as an artifact; the deployment workflow uses that artifact rather than rebuilding pull request code.
 
-Pull requests deploy the artifact to an isolated Vercel Preview. The workflow smoke-tests the deployment and reports Preview status, bundle size, and Lighthouse results. After merge, a push to `main` follows the same build and checks before production deployment. Check the deployment URL and status in GitHub Actions and the pull request.
+Pull requests from this repository and static-only fork pull requests deploy automatically to the shared Vercel Preview project. Fork pull requests containing a Function still run CI and bundle size checks, but the trusted deploy script skips their deployment to keep untrusted server code away from shared Preview credentials and database access. Preview and Lighthouse statuses explicitly report that skip without claiming a deployment URL. A Function Preview from a fork requires a separate isolated project and credentials before automatic deployment can be supported. Deployed previews receive smoke, bundle size, and Lighthouse checks. After merge, a push to `main` follows the same build and checks before production deployment. Check the deployment URL and status in GitHub Actions and the pull request.
 
 ## Dependency exceptions and security findings
 
