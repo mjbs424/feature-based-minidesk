@@ -1,0 +1,26 @@
+# Context7 is a hosted MCP server; anonymous access has lower rate limits.
+[mcp_servers.context7]
+url = "https://mcp.context7.com/mcp"
+startup_timeout_sec = 20
+tool_timeout_sec = 60
+
+# Serena uses the pinned version. The agent must activate this checkout
+# explicitly when Codex did not start at its root.
+[mcp_servers.serena]
+enabled = true
+command = "uvx"
+args = [
+  "-p",
+  "3.13",
+  "--from",
+  "serena-agent==1.5.3",
+  "serena",
+  "start-mcp-server",
+  "--project-from-cwd",
+  "--context=codex",
+  "--open-web-dashboard",
+  "false",
+]
+startup_timeout_sec = 60
+tool_timeout_sec = 60
+required = false

@@ -12,37 +12,7 @@ The choices below record what this repository actually runs and where. They are 
 
 ## Get started
 
-Install the [global Vite+ `vp` CLI](https://viteplus.dev/guide/) first. On Windows, the official PowerShell installer is:
-
-```powershell
-irm https://vite.plus/ps1 | iex
-```
-
-On macOS or Linux:
-
-```sh
-curl -fsSL https://vite.plus | bash
-```
-
-Open a new terminal, run `vp help`, then run these commands from the repository root:
-
-```sh
-vp install --frozen-lockfile
-vp dev
-```
-
-Use Node.js 24 and pnpm 12.21.0; Vite+ manages the package manager for this project. Local commits require Gitleaks and Semgrep on `PATH`; Semgrep fetches its `p/javascript` rules from the registry.
-
-| Command          | What it does                                  |
-| ---------------- | --------------------------------------------- |
-| `vp check`       | Check formatting, lint, and types with Vite+. |
-| `vp run test`    | Run the project's current Node tests.         |
-| `vp run build`   | Type-check and produce the static build.      |
-| `vp run audit`   | Run Fallow's audit.                           |
-| `vp run doctor`  | Run React Doctor.                             |
-| `vp run preview` | Serve an existing production build locally.   |
-
-Use `vp run` for the scripts in `package.json`: `vp test` invokes Vite+'s built-in Vitest command, while this project's `test` script currently uses Node's test runner. Likewise, `vp run build` includes the project's TypeScript build step.
+Follow the [setup guide](docs/agent-tooling-setup.md) to install the app, commit checks, and optional agent tools. For everyday commands and checks, use [development.md](docs/development.md); for task-specific agent tools, use [agent-tooling.md](docs/agent-tooling.md).
 
 ## Tool decisions
 
@@ -73,12 +43,8 @@ Use `vp run` for the scripts in `package.json`: `vp test` invokes Vite+'s built-
 
 ## CI and deployment
 
-GitHub Actions checks pull requests to `main` and pushes to `main`. It runs the dependency security check, Gitleaks, `vp check`, Node tests, Fallow, React Doctor, and the build. CodeQL and report-only Dependency Review have separate workflows. CI caches pnpm downloads, while the build is produced once per checked commit and saved as an artifact for deployment.
-
-The deployment workflow reuses that verified build for an isolated Preview in a dedicated Vercel project. Each pull request gets its own URL for review and testing. The workflow smoke-tests the Preview, measures its bundle and root page, and publishes the required Preview deployment status. When the pull request closes or merges, its Preview deployment is removed. A successful `main` run deploys the checked build to a separate production Vercel project. The [live site](https://feature-based-minidesk.vercel.app/) reflects the last deployed `main` commit.
+GitHub Actions checks pull requests and pushes to `main`, then deploys the verified build to Preview or production. See [development.md](docs/development.md#ci-and-deployment) for checks, deployment behavior, and coverage limits. The [live site](https://feature-based-minidesk.vercel.app/) reflects the last deployed `main` commit.
 
 ## Next steps and AI-assisted development
 
-The [API guide](docs/api.md) records data policies to decide with the first real API. The [work list](inprogress.md) tracks candidates such as OpenAPI TypeScript, Vitest, React Testing Library, MSW, Playwright, axe-core, visual testing, Storybook, and Stryker. Superpowers skills and Spec Kit 1.4.4 are installed in `.agents/skills`; the latter's project files live in `.specify/`. Their coordinated use, the shared layout phase, and the four feature phases are in the [feature delivery map](docs/feature-delivery.md). Anthropic Skills, Context7, and Serena remain evaluations. TanStack Query is installed for data infrastructure. Modern Web Guidance and three [Vercel agent skills](docs/vercel-agent-skills.md) help agents apply relevant browser, React, composition, and performance practices. Validate all guidance against this project's architecture, approved requirements, and checks.
-
-The agent guide links to the [product direction](docs/product.md), [design references](docs/design.md), [API boundary](docs/api.md), and [task workflow](docs/agent-workflow.md). Later agent-readiness work will settle feature acceptance criteria, API schema, sample data, and optional tools. AI can help turn traces and network reports into testable hypotheses, inspect diffs, suggest small refactors from Fallow findings, generate meaningful tests and examples, and compare before-and-after reports. Those suggestions need confirmation with profiling, tests, CI output, and real-user evidence where available. [AGENTS.md](AGENTS.md), [frontend architecture](docs/architecture.md), and [development and contributing](docs/development.md) are the current starting points for that work.
+The [work list](inprogress.md) tracks candidates; the [feature delivery map](docs/feature-delivery.md) owns the order and prerequisites of assigned feature work. Agents start with [AGENTS.md](AGENTS.md), then open only the guides relevant to the current step. The [API guide](docs/api.md) owns unsettled data contracts, and the [agent tooling guide](docs/agent-tooling.md) owns optional skill and MCP use.

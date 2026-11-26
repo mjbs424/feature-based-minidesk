@@ -11,6 +11,11 @@ node_modules
 dist
 dist-ssr
 .bundle-analysis/
+.local-tools/
+.serena/cache/
+.serena/logs/
+.serena/project.local.yml
+.serena/memories/
 .vercel
 *.local
 

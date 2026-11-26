@@ -1,17 +1,6 @@
 # Development and contributing
 
-This guide owns local setup, commands, check coverage, CI, and deployment. See [agent-workflow.md](agent-workflow.md) for task review and PR readiness. Tools planned in later tasks are not assumed to be installed or configured here.
-
-## Local setup
-
-Use Node.js 24 and pnpm 12.21.0. Install the global [Vite+ `vp` CLI](https://viteplus.dev/guide/) and run from the repository root:
-
-```sh
-vp install --frozen-lockfile
-vp dev
-```
-
-The Git pre-commit hook also needs Gitleaks and Semgrep on `PATH`. Semgrep's `p/javascript` rules are fetched from the registry, so that check needs network access. A missing tool blocks the commit.
+This guide owns development commands, check coverage, CI, and deployment. For any first-time installation, use the single [setup guide](agent-tooling-setup.md). See [agent-workflow.md](agent-workflow.md) for task review and PR readiness.
 
 ## Checks and scripts
 
@@ -44,7 +33,7 @@ The rationale for the Size Limit file-budget check is recorded in [ADR 0001](dec
 
 Fallow ignores the TypeScript import resolver's unused-dependency warning because Oxlint loads that package by its `typescript` resolver name from configuration.
 
-The pre-commit hook runs React Doctor on staged files, `vp staged --hide-unstaged`, Gitleaks on staged files, Semgrep on `src` and `.github/scripts`, Fallow, and the dependency security check. It verifies the staged file set again after `vp staged`. The hook does not run `pnpm test`; CI runs it.
+The pre-commit hook runs React Doctor on staged files, `vp staged --hide-unstaged`, Gitleaks on staged files, Semgrep on `src` and `.github/scripts`, Fallow, and the dependency security check. It verifies the staged file set again after `vp staged`. A missing required tool or failed check blocks the commit. Semgrep uses `p/javascript` rules from the registry and needs network access when those rules are not cached. The hook does not run `pnpm test`; CI runs it. For tool installation, use the [setup guide](agent-tooling-setup.md).
 
 ## CI and deployment
 

@@ -4,7 +4,7 @@
 
 Task IDs remain stable when rows move or are removed. Tasks within a section may be completed in a different order. Before starting a task, decide whether the project needs it, which tool to use, its cost, where it runs (locally or in CI), its warning or failure threshold, and its acceptance criteria. Investigation and a documented decision are valid outcomes. Once a task is settled, remove its row; the corresponding PR and commit retain the decision history. Listing a tool here does not mean its installation has been approved.
 
-The current focus is the agent guidance and tooling section. Other work can proceed when its prerequisites and real use cases are clear.
+Select remaining work when its prerequisites and real use cases are clear.
 
 ## Architecture and development foundations
 
@@ -24,15 +24,6 @@ The current focus is the agent guidance and tooling section. Other work can proc
 | T12 | [Playwright visual testing](https://playwright.dev/docs/test-snapshots)                                                  | Evaluate baselines, intentional changes, and stable browsers, fonts, and environments; start with stable pages or components.                                                         |
 | T13 | [Storybook](https://storybook.js.org/docs/get-started/why-storybook)                                                     | Decide whether independently displaying loading, error, empty, and success states helps UI review and testing.                                                                        |
 | T14 | [Stryker Mutator](https://stryker-mutator.io/docs/)                                                                      | Trial mutation testing on real logic, measure whether tests catch faults, and decide whether its runtime cost fits periodic or CI use.                                                |
-
-## Agent guidance, skills, and documentation
-
-| ID  | Open task                   | Expected outcome                                                                                                                                    |
-| --- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T33 | Anthropic Skills            | Review the skill format, portability, versioning needs, and reliable use in this project.                                                           |
-| T34 | Context7                    | Assess access to current library documentation, access limits, and its effect on technical decisions.                                               |
-| T35 | Serena                      | Evaluate semantic code navigation and editing, security, and fit for this TypeScript project.                                                       |
-| T36 | Final agent-tool evaluation | Trial a common real task, record results, select a small compatible toolset, document its use for feature development, and record rejected choices. |
 
 ## Later review after feature implementation
 
