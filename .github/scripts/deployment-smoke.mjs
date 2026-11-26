@@ -149,10 +149,11 @@ function isValidMiniDeskDemo(body) {
 async function checkMiniDeskApi(url, secret, request) {
   const endpoint = new URL("/api/minidesk/v1/demo", url);
   const response = await requestOnOrigin(endpoint, url.origin, secret, request);
-  if (
-    !/^application\/json\b/i.test(response.headers.get("content-type") ?? "") ||
-    response.headers.get("cache-control") !== "no-store"
-  )
+  const contentType = (response.headers.get("content-type") ?? "")
+    .split(";", 1)[0]
+    .trim()
+    .toLowerCase();
+  if (contentType !== "application/json" || response.headers.get("cache-control") !== "no-store")
     throw new Error("MiniDesk API returned unexpected headers");
   const body = await response.json();
   if (!isValidMiniDeskDemo(body)) throw new Error("MiniDesk API returned an invalid demo response");
