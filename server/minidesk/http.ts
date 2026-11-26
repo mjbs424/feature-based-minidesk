@@ -97,7 +97,7 @@ export function getById<T extends { id: string }>(items: T[], id: string): T {
   return item;
 }
 
-export function parsePage<T>(
+export function parsePage<T extends { id: string }>(
   items: T[],
   params: URLSearchParams,
   scope: string,
@@ -105,6 +105,9 @@ export function parsePage<T>(
 ): { items: T[]; nextCursor: string | null } {
   const rawLimit = params.get("limit");
   const limit = rawLimit === null ? 20 : integer(Number(rawLimit), "limit", 1, 100);
+  const snapshot = createHash("sha256")
+    .update(items.map((item) => item.id).join("\n"))
+    .digest("base64url");
   let offset = 0;
   const cursor = params.get("cursor");
   if (cursor) {
@@ -113,12 +116,14 @@ export function parsePage<T>(
         offset: number;
         scope: string;
         datasetId: string;
+        snapshot: string;
       };
       if (
         !Number.isSafeInteger(parsed.offset) ||
         parsed.offset < 0 ||
         parsed.scope !== scope ||
-        parsed.datasetId !== datasetId
+        parsed.datasetId !== datasetId ||
+        parsed.snapshot !== snapshot
       )
         bad("cursor", "Invalid or expired cursor");
       offset = parsed.offset;
@@ -131,7 +136,9 @@ export function parsePage<T>(
     items: items.slice(offset, next),
     nextCursor:
       next < items.length
-        ? Buffer.from(JSON.stringify({ offset: next, scope, datasetId })).toString("base64url")
+        ? Buffer.from(JSON.stringify({ offset: next, scope, datasetId, snapshot })).toString(
+            "base64url",
+          )
         : null,
   };
 }

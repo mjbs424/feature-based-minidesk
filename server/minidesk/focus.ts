@@ -7,6 +7,7 @@ import {
   only,
   parsePage,
   query,
+  rateLimit,
   requireVersion,
   type Result,
 } from "./http.js";
@@ -89,6 +90,7 @@ export async function start(
   body: Record<string, unknown>,
 ): Promise<Result> {
   return idempotent(context, request, "/focus/sessions", body, () => {
+    rateLimit(context);
     only(body, ["taskId", "completeTaskOnTarget"]);
     if (
       context.state.focusSessions.some(
@@ -145,6 +147,7 @@ export async function action(
   body: Record<string, unknown>,
 ): Promise<Result> {
   return idempotent(context, request, `/focus/sessions/${id}/${name}`, body, () => {
+    rateLimit(context);
     only(body, []);
     const session = getById(context.state.focusSessions, id);
     if (name === "finish" && session.status === "completed")

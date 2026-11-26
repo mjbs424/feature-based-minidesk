@@ -57,6 +57,8 @@ async function seedCategories(tx: Tx): Promise<void> {
 
 async function resetIfNeeded(start: Date): Promise<void> {
   if (!sql) throw new ApiError(503, "DATABASE_UNAVAILABLE", "Database is not configured");
+  const current = await sql`SELECT window_start FROM minidesk_generation WHERE id = 1`;
+  if (current[0] && new Date(iso(current[0].window_start)) >= start) return;
   await sql.begin(async (tx) => {
     const inserted = await tx`
       INSERT INTO minidesk_generation (id, window_start, dataset_id, write_count)
@@ -88,6 +90,7 @@ async function loadState(tx: Tx, writeCount: number, path: string, method: strin
   const taskArea = path.startsWith("tasks") || path.startsWith("focus/");
   const expenseArea = path.startsWith("expenses") || path.startsWith("budgets/");
   const focusArea = path.startsWith("focus/");
+  const taskAreaNeedsActiveFocus = path === "tasks" || path.startsWith("tasks/");
   const taskCategories =
     path.startsWith("task-categories") || path.startsWith("tasks")
       ? await tx`SELECT * FROM minidesk_task_categories`
@@ -99,12 +102,26 @@ async function loadState(tx: Tx, writeCount: number, path: string, method: strin
   const tasks = taskArea ? await tx`SELECT * FROM minidesk_tasks` : [];
   const expenses = path.startsWith("expenses") ? await tx`SELECT * FROM minidesk_expenses` : [];
   const budgets = expenseArea ? await tx`SELECT * FROM minidesk_budgets` : [];
-  const sessions = focusArea ? await tx`SELECT * FROM minidesk_focus_sessions` : [];
+  const sessions = focusArea
+    ? await tx`SELECT * FROM minidesk_focus_sessions`
+    : taskAreaNeedsActiveFocus
+      ? await tx`SELECT * FROM minidesk_focus_sessions WHERE status = 'running'`
+      : [];
   const segments = focusArea
     ? await tx`SELECT * FROM minidesk_focus_segments ORDER BY session_id, position`
-    : [];
+    : taskAreaNeedsActiveFocus
+      ? await tx`SELECT s.* FROM minidesk_focus_segments s JOIN minidesk_focus_sessions f ON f.id = s.session_id WHERE f.status = 'running' ORDER BY s.session_id, s.position`
+      : [];
   const events = path.startsWith("rum/") ? await tx`SELECT * FROM minidesk_rum_events` : [];
-  const keys = method === "GET" ? [] : await tx`SELECT * FROM minidesk_idempotency`;
+  const usesIdempotency =
+    method === "POST" &&
+    (path === "task-categories" ||
+      path === "expense-categories" ||
+      path === "tasks" ||
+      path === "expenses" ||
+      path === "focus/sessions" ||
+      /^focus\/sessions\/[^/]+\/(pause|resume|finish)$/.test(path));
+  const keys = usesIdempotency ? await tx`SELECT * FROM minidesk_idempotency` : [];
   const ticks =
     method === "GET" ? [] : await tx`SELECT occurred_at_ms FROM minidesk_write_ticks ORDER BY id`;
 
@@ -156,6 +173,13 @@ async function loadState(tx: Tx, writeCount: number, path: string, method: strin
     updatedAt: iso(row.updated_at),
     version: Number(row.version),
   }));
+  const segmentsBySession = new Map<string, FocusSession["segments"]>();
+  for (const segment of segments) {
+    const id = String(segment.session_id);
+    const items = segmentsBySession.get(id) ?? [];
+    items.push({ start: iso(segment.started_at), end: nullableIso(segment.ended_at) });
+    segmentsBySession.set(id, items);
+  }
   state.focusSessions = sessions.map((row): FocusSession => ({
     id: String(row.id),
     status: row.status as FocusSession["status"],
@@ -168,12 +192,7 @@ async function loadState(tx: Tx, writeCount: number, path: string, method: strin
     createdAt: iso(row.created_at),
     updatedAt: iso(row.updated_at),
     version: Number(row.version),
-    segments: segments
-      .filter((segment) => String(segment.session_id) === String(row.id))
-      .map((segment) => ({
-        start: iso(segment.started_at),
-        end: nullableIso(segment.ended_at),
-      })),
+    segments: segmentsBySession.get(String(row.id)) ?? [],
   }));
   state.rumEvents = events.map((row): RumEvent => ({
     eventId: String(row.event_id),
@@ -342,13 +361,17 @@ export async function withState<T>(
   // Commit the reset before rejecting a stale write, so DATASET_RESET cannot roll it back.
   await resetIfNeeded(start);
   return sql.begin(async (tx) => {
-    const rows = await tx`
-      SELECT window_start, dataset_id, write_count
-      FROM minidesk_generation WHERE id = 1 FOR UPDATE
-    `;
+    const canChangeState =
+      method !== "GET" ||
+      path.startsWith("focus/") ||
+      path === "tasks" ||
+      path.startsWith("tasks/");
+    const rows = canChangeState
+      ? await tx`SELECT window_start, dataset_id, write_count FROM minidesk_generation WHERE id = 1 FOR UPDATE`
+      : await tx`SELECT window_start, dataset_id, write_count FROM minidesk_generation WHERE id = 1`;
     const row = rows[0];
     const state = await loadState(tx, Number(row.write_count), path, method);
-    const before = structuredClone(state);
+    const before = canChangeState ? structuredClone(state) : null;
     const result = await run({
       state,
       datasetId: String(row.dataset_id),
@@ -356,7 +379,7 @@ export async function withState<T>(
       resetAt: nextReset(new Date(iso(row.window_start))),
       now,
     });
-    await persistState(tx, before, state);
+    if (before) await persistState(tx, before, state);
     return result;
   });
 }

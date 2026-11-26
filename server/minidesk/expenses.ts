@@ -13,6 +13,7 @@ import {
   optionalText,
   parsePage,
   query,
+  rateLimit,
   requiredQuery,
   requireVersion,
   text,
@@ -91,6 +92,7 @@ export async function createExpense(
   body: Record<string, unknown>,
 ): Promise<Result> {
   return idempotent(context, request, "/expenses", body, () => {
+    rateLimit(context);
     const data = fields(context, body);
     if (context.state.expenses.length >= 1000)
       throw new ApiError(429, "RATE_LIMITED", "Expense capacity reached until the next reset");

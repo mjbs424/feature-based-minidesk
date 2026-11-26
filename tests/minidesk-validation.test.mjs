@@ -15,7 +15,14 @@ async function loadServerModule(file) {
 }
 
 const context = () => ({
-  state: { rumEvents: [], focusSessions: [], tasks: [], idempotency: {} },
+  state: {
+    rumEvents: [],
+    focusSessions: [],
+    tasks: [],
+    idempotency: {},
+    writeTicks: [],
+    writeCount: 0,
+  },
   now: new Date("2026-11-26T11:00:00.000Z"),
   windowStart: "2026-11-26T00:00:00.000Z",
 });
@@ -49,4 +56,61 @@ test("Focus rejects an empty task ID as a validation error", async () => {
     }),
     (error) => error.status === 400 && error.fields?.taskId === "Invalid task ID",
   );
+});
+
+test("a list cursor expires when a shared list changes between pages", async () => {
+  const { parsePage } = await loadServerModule("server/minidesk/http.ts");
+  const initial = [{ id: "a" }, { id: "b" }, { id: "c" }];
+  const first = parsePage(initial, new URLSearchParams("limit=1"), "all", "generation-1");
+  assert.deepEqual(first.items, [{ id: "a" }]);
+  const params = new URLSearchParams({ limit: "1", cursor: first.nextCursor });
+  assert.deepEqual(parsePage(initial, params, "all", "generation-1").items, [{ id: "b" }]);
+  assert.throws(
+    () => parsePage([{ id: "new" }, ...initial], params, "all", "generation-1"),
+    (error) => error.status === 400,
+  );
+});
+
+test("reconciling an elapsed focus session completes its linked task", async () => {
+  const { reconcile } = await loadServerModule("server/minidesk/focus.ts");
+  const ctx = context();
+  ctx.now = new Date("2026-11-26T10:30:00.000Z");
+  ctx.state.tasks = [
+    {
+      id: "task-1",
+      isCompleted: false,
+      isFocusPriority: true,
+      prioritySelectedAt: "2026-11-26T09:00:00.000Z",
+      version: 1,
+    },
+  ];
+  ctx.state.focusSessions = [
+    {
+      id: "focus-1",
+      status: "running",
+      taskId: "task-1",
+      completeTaskOnTarget: true,
+      taskCompletionApplied: false,
+      version: 1,
+      segments: [{ start: "2026-11-26T10:00:00.000Z", end: null }],
+    },
+  ];
+  reconcile(ctx);
+  assert.equal(ctx.state.focusSessions[0].endedAt, "2026-11-26T10:25:00.000Z");
+  assert.equal(ctx.state.tasks[0].isCompleted, true);
+  assert.equal(ctx.state.tasks[0].completedAt, "2026-11-26T10:25:00.000Z");
+});
+
+test("an idempotent focus retry does not consume another write", async () => {
+  const { start } = await loadServerModule("server/minidesk/focus.ts");
+  const ctx = context();
+  const request = new Request("https://example.test/focus/sessions", {
+    method: "POST",
+    headers: { "Idempotency-Key": "retry-1" },
+  });
+  const first = await start(ctx, request, {});
+  const retry = await start(ctx, request, {});
+  assert.deepEqual(retry, first);
+  assert.equal(ctx.state.writeCount, 1);
+  assert.equal(ctx.state.focusSessions.length, 1);
 });

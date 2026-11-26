@@ -62,18 +62,22 @@ async function route(
 
   if (method !== "GET") {
     requireDataset(request, context);
-    rateLimit(context);
+    if (method !== "POST") rateLimit(context);
   }
 
   if (method === "POST" && body) {
     if (path === "task-categories" || path === "expense-categories")
-      return idempotent(context, request, `/${path}`, body, () =>
-        categories(context, path === "task-categories" ? "task" : "expense", method, body),
-      );
+      return idempotent(context, request, `/${path}`, body, () => {
+        rateLimit(context);
+        return categories(context, path === "task-categories" ? "task" : "expense", method, body);
+      });
     if (path === "tasks") return createTask(context, request, body);
     if (path === "expenses") return createExpense(context, request, body);
     if (path === "focus/sessions") return start(context, request, body);
-    if (path === "rum/events") return ingest(context, body);
+    if (path === "rum/events") {
+      rateLimit(context);
+      return ingest(context, body);
+    }
   }
 
   const taskId = /^tasks\/([^/]+)$/.exec(path)?.[1];
@@ -139,7 +143,8 @@ export async function handle(request: Request): Promise<Response> {
       throw new ApiError(405, "METHOD_NOT_ALLOWED", "Method not allowed");
     const body = ["POST", "PATCH", "PUT"].includes(method) ? await readBody(request) : undefined;
     const result = await withState(path, method, async (context) => {
-      if (path.startsWith("focus/")) reconcile(context);
+      if (path.startsWith("focus/") || path === "tasks" || path.startsWith("tasks/"))
+        reconcile(context);
       return route(context, request, url, path, body);
     });
     return response(result);

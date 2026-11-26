@@ -12,6 +12,7 @@ import {
   optionalText,
   parsePage,
   query,
+  rateLimit,
   requireVersion,
   text,
   time,
@@ -209,6 +210,7 @@ export async function createTask(
   body: Record<string, unknown>,
 ): Promise<Result> {
   return idempotent(context, request, "/tasks", body, () => {
+    rateLimit(context);
     const fields = validateFields(body);
     assertCategory(context, fields.categoryId);
     if (context.state.tasks.length >= 1000)

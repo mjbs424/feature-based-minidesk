@@ -4,7 +4,7 @@ import path from "node:path";
 import { removePrDeployments, vercel } from "./cleanup.mjs";
 import { assertTrustedBuildOutputConfig } from "./build-output-config.mjs";
 import { authorizePreviewDeployment } from "./preview-authorization.mjs";
-import { validateDeployArtifact } from "./deploy-artifact.mjs";
+import { resolveTrustedPrNumber, validateDeployArtifact } from "./deploy-artifact.mjs";
 
 const repo = process.env.GITHUB_REPOSITORY;
 const [owner, name] = (repo ?? "").split("/");
@@ -16,14 +16,6 @@ const manifest = JSON.parse(await readFile("bundle/manifest.json", "utf8"));
 if (!owner || !name || !ghToken || !/^[a-f0-9]{40}$/.test(sha ?? "")) {
   throw new Error("Missing trusted GitHub run information");
 }
-const prNumber = validateDeployArtifact(manifest, {
-  event: runEvent,
-  headSha: sha,
-  prNumber: process.env.RUN_PR_NUMBER,
-  repository: repo,
-  headRepository: process.env.RUN_HEAD_REPO,
-});
-
 async function github(route, options = {}) {
   const response = await fetch(`https://api.github.com/repos/${repo}${route}`, {
     ...options,
@@ -37,6 +29,23 @@ async function github(route, options = {}) {
   if (!response.ok) throw new Error(`GitHub API ${route}: ${response.status}`);
   return response.status === 204 ? null : response.json();
 }
+
+const trustedPrNumber =
+  runEvent === "pull_request"
+    ? await resolveTrustedPrNumber(github, {
+        prNumber: process.env.RUN_PR_NUMBER,
+        headSha: sha,
+        headRepository: process.env.RUN_HEAD_REPO,
+        headBranch: process.env.RUN_HEAD_BRANCH,
+      })
+    : null;
+const prNumber = validateDeployArtifact(manifest, {
+  event: runEvent,
+  headSha: sha,
+  prNumber: trustedPrNumber,
+  repository: repo,
+  headRepository: process.env.RUN_HEAD_REPO,
+});
 
 async function currentPr() {
   const pr = await github(`/pulls/${prNumber}`);
