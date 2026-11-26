@@ -20,7 +20,7 @@ Read the request, current diff, and any approved task or feature spec. Select th
 | Documentation changes                                             | [Documentation map](docs/documentation.md)                                                                                   |
 | Version-sensitive library APIs or cross-file symbol changes       | [Agent tooling](docs/agent-tooling.md)                                                                                       |
 
-Before any edit, read [workflow section 1](docs/agent-workflow.md#1-scope-and-implement) and confirm the task's scope and checkout. Follow the verification, review, and PR steps at the stages specified there. Check actual code and configuration before assuming a tool, route, test, or API exists.
+Before any edit, read [workflow section 1](docs/agent-workflow.md#1-scope-and-implement) and confirm the task's scope and checkout. Follow the verification, review, and PR steps at the stages specified there. Check frontend code and configuration before assuming a tool, client route, or test exists. For remote data, use the approved OpenAPI contract when T06 provides it; frontend tasks do not inspect backend source or infer API behavior from it.
 
 Use Context7 and Serena only when the task calls for them. If an expected tool is missing or fails, consult [setup and troubleshooting](docs/agent-tooling-setup.md); do not run setup checks on every task or infer a machine-level failure from a restricted shell. Claim tool use only after a successful MCP response.
 

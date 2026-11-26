@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vp dev",
+    "dev:api": "node --env-file=.env.local scripts/dev-minidesk.mjs",
     "build": "tsc -b && vp build",
+    "package:vercel": "node scripts/package-vercel.mjs",
+    "db:migrate": "node --env-file=.env.local scripts/migrate-minidesk.mjs",
     "lint": "vp lint",
     "audit": "fallow audit",
     "doctor": "react-doctor . --yes --json --no-score --blocking error",
@@ -16,6 +19,7 @@
   "dependencies": {
     "@tanstack/react-query": "5.108.2",
     "@tanstack/react-router": "1.170.46",
+    "postgres": "^4.1.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "shadcn": "^4.23.0",
@@ -33,6 +37,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "babel-plugin-react-compiler": "^1.0.0",
+    "esbuild": "^0.28.2",
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-boundaries": "^7.4.4",
     "fallow": "^3.45.0",

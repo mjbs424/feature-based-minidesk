@@ -7,6 +7,9 @@ This guide owns development commands, check coverage, CI, and deployment. For an
 | Command                                   | Purpose                                                                                  |
 | ----------------------------------------- | ---------------------------------------------------------------------------------------- |
 | `vp dev`                                  | Start the development server.                                                            |
+| `pnpm run dev:api`                        | Start the MiniDesk API locally with `.env.local`.                                        |
+| `pnpm run db:migrate`                     | Apply versioned MiniDesk relational migrations using the direct database URL.            |
+| `pnpm run package:vercel`                 | Package the built frontend and MiniDesk Function for Vercel.                             |
 | `vp check`                                | Check formatting, lint, and types across the project.                                    |
 | `vp run test`                             | Run the current Node tests from the project script.                                      |
 | `vp run build`                            | Type-check and build; locally open a bundle analysis report after the build.             |
@@ -27,7 +30,7 @@ For full local verification, run `vp check`, `vp run test`, `vp run build`, `vp 
 
 The bundle-size check measures built JavaScript and CSS, not every static asset. The current Lighthouse check visits only the root To-do route, so it does not establish performance coverage for the other feature routes. Interpret both reports within these limits.
 
-The deployment smoke test requests `/`, an unknown deep link, `/favicon.svg`, and the entry JavaScript and CSS. It follows local JS/CSS references in built JavaScript to check route chunks too. It checks content types and security headers on the HTML and SVG responses; browser rendering of the 404 page still needs a separate check.
+The deployment smoke test requests `/`, an unknown deep link, `/favicon.svg`, `/api/minidesk/v1/demo`, and the entry JavaScript and CSS. It follows local JS/CSS references in built JavaScript to check route chunks too. It checks the API's clock/generation shape and no-store header, plus content types and security headers; browser rendering of the 404 page still needs a separate check.
 
 The rationale for the Size Limit file-budget check is recorded in [ADR 0001](decisions/0001-use-size-limit-for-built-asset-budgets.md).
 

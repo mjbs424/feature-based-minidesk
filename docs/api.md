@@ -1,6 +1,6 @@
 # API and data boundary
 
-This is a frontend repository with no approved backend or schema source. No API client, feature endpoint, generated response type, mock server, or OpenAPI schema has been adopted here. T06 will choose the contract format and source, generation command, runtime validation policy, and example data. Do not invent endpoint URLs or response shapes from design images.
+This is the frontend remote-data guide. No frontend API client, feature endpoint, generated response type, mock server, or OpenAPI schema has been adopted here. T06 will establish the frontend-facing OpenAPI contract, generation command, validation policy, and example data. Until then, do not infer endpoints or response shapes from design images, planning notes, or backend source. Frontend agents do not need to inspect backend implementation or storage decisions.
 
 ## Decided request path
 
@@ -12,6 +12,8 @@ route adapter -> feature page -> feature hook/controller -> feature service
 ```
 
 The page and feature UI present state and actions; they do not call the transport or endpoint. A feature hook/controller invokes its service. The service is mandatory even for a simple request and owns feature-level operations, mapping, or orchestration. The endpoint owns that feature's URL and request/response mechanics. `src/shared/api` owns only domain-neutral transport and, after a later decision, shared/generated API types. Pass cancellation/abort signals through every used layer when the operation supports cancellation. Source import boundaries belong to [architecture.md](architecture.md).
+
+Treat the API as an external HTTP service. Use a same-origin relative API base initially and keep base URL configuration at the transport boundary so the service can later move to another origin. Frontend code must not import server handlers, database models, or secrets. T06 establishes the readable OpenAPI artifact and frontend-facing type generation.
 
 ## Query infrastructure
 
@@ -27,11 +29,11 @@ Create actual files only when a real remote operation exists. The example paths 
 
 | Question                                                              | Current state                                                                                               |
 | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Backend and base URL/environment                                      | Not chosen.                                                                                                 |
-| Contract format and source, including whether OpenAPI is used         | Not chosen; T06 investigates it.                                                                            |
+| API base URL/environment                                              | Same-origin `/api/minidesk/v1/` initially, with frontend transport base configurable.                       |
+| Formal OpenAPI source and generation workflow                         | T06 decision; implementation waits for the frontend-facing contract.                                        |
 | Generated types, their location, and regeneration                     | Not chosen.                                                                                                 |
-| Runtime request/response validation and error envelope                | Not chosen.                                                                                                 |
-| Authentication and authorization behavior                             | Not chosen.                                                                                                 |
+| Runtime request/response validation strategy                          | Not chosen; decide from the OpenAPI contract.                                                               |
+| Authentication and authorization behavior                             | MiniDesk is public with no accounts; future projects are outside this contract.                             |
 | Feature cache policy, query keys, invalidation, and mutation handling | Query infrastructure is installed; concrete values and relationships wait for the first real API operation. |
 | Mock and sample data strategy                                         | Not chosen; T09 may evaluate MSW after a data contract exists.                                              |
 

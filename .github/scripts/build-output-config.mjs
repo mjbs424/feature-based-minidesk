@@ -15,11 +15,13 @@ const legacyBuildOutputConfig = {
   ],
 };
 
-// Serve existing static files first, then rewrite client-side routes to the SPA shell.
+// Send only MiniDesk API paths to the Function, then serve static files and SPA routes.
 export const secureBuildOutputConfig = {
   ...legacyBuildOutputConfig,
   routes: [
     ...legacyBuildOutputConfig.routes,
+    { src: "^/api/minidesk/v1/(.*)$", dest: "/api/minidesk/v1?__route=$1" },
+    { src: "^/api/.*$", status: 404 },
     { handle: "filesystem" },
     { src: "/(.*)", dest: "/index.html" },
   ],

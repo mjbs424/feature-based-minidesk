@@ -4,7 +4,7 @@
 
 ### I. Preserve the existing product and stack
 
-Read `docs/product.md`, `docs/design.md`, `docs/architecture.md`, `docs/api.md`, and the actual configuration before specifying a feature. Preserve their established contracts. A new technology or architecture is an optional proposal, never an implicit requirement of a feature.
+Read `docs/product.md`, `docs/design.md`, `docs/architecture.md`, `docs/api.md`, and the relevant frontend configuration before specifying a feature. Preserve their established contracts. Use T06/OpenAPI for remote-data details once available; do not inspect the demo backend to derive frontend contracts. A new technology or architecture is an optional proposal, never an implicit requirement of a feature.
 
 ### II. Specify approved behavior
 

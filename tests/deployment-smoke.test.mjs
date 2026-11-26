@@ -21,23 +21,34 @@ test("checks the deployed application and its built assets", async () => {
   await smokeDeployment(url, "test-secret", async (target, options) => {
     seen.push([target.pathname, options.headers["x-vercel-protection-bypass"]]);
     return new Response(
-      target.pathname === "/" || target.pathname === "/unknown-page"
-        ? html
-        : target.pathname === "/favicon.svg"
-          ? "<svg></svg>"
-          : target.pathname === "/assets/app-123.js"
-            ? 'const chunks = ["assets/routes-123.js", "assets/routes-123.css"]'
-            : "built asset",
+      target.pathname === "/api/minidesk/v1/demo"
+        ? JSON.stringify({
+            datasetId: "dataset",
+            currency: "USD",
+            timeZone: "UTC",
+            serverNow: "2026-11-26T00:00:00.000Z",
+            resetAt: "2026-11-26T12:00:00.000Z",
+          })
+        : target.pathname === "/" || target.pathname === "/unknown-page"
+          ? html
+          : target.pathname === "/favicon.svg"
+            ? "<svg></svg>"
+            : target.pathname === "/assets/app-123.js"
+              ? 'const chunks = ["assets/routes-123.js", "assets/routes-123.css"]'
+              : "built asset",
       {
         headers: {
           ...secureBuildOutputConfig.routes[0].headers,
           "content-type": target.pathname.endsWith(".js")
             ? "text/javascript; charset=utf-8"
-            : target.pathname.endsWith(".css")
-              ? "text/css; charset=utf-8"
-              : target.pathname.endsWith(".svg")
-                ? "image/svg+xml"
-                : "text/html",
+            : target.pathname === "/api/minidesk/v1/demo"
+              ? "application/json; charset=utf-8"
+              : target.pathname.endsWith(".css")
+                ? "text/css; charset=utf-8"
+                : target.pathname.endsWith(".svg")
+                  ? "image/svg+xml"
+                  : "text/html",
+          ...(target.pathname === "/api/minidesk/v1/demo" ? { "cache-control": "no-store" } : {}),
         },
       },
     );
@@ -50,6 +61,7 @@ test("checks the deployed application and its built assets", async () => {
     ["/assets/routes-123.css", "test-secret"],
     ["/unknown-page", "test-secret"],
     ["/favicon.svg", "test-secret"],
+    ["/api/minidesk/v1/demo", "test-secret"],
   ]);
 });
 
@@ -61,19 +73,33 @@ test("deep-link redirects must preserve the requested path", async () => {
         return new Response(null, { status: 302, headers: { location } });
       const contentType = target.pathname.endsWith(".js")
         ? "text/javascript"
-        : target.pathname.endsWith(".css")
-          ? "text/css"
-          : target.pathname.endsWith(".svg")
-            ? "image/svg+xml"
-            : "text/html";
+        : target.pathname === "/api/minidesk/v1/demo"
+          ? "application/json"
+          : target.pathname.endsWith(".css")
+            ? "text/css"
+            : target.pathname.endsWith(".svg")
+              ? "image/svg+xml"
+              : "text/html";
       const body =
-        target.pathname === "/" || target.pathname === "/unknown-page"
-          ? html
-          : target.pathname === "/favicon.svg"
-            ? "<svg></svg>"
-            : "built asset";
+        target.pathname === "/api/minidesk/v1/demo"
+          ? JSON.stringify({
+              datasetId: "dataset",
+              currency: "USD",
+              timeZone: "UTC",
+              serverNow: "2026-11-26T00:00:00.000Z",
+              resetAt: "2026-11-26T12:00:00.000Z",
+            })
+          : target.pathname === "/" || target.pathname === "/unknown-page"
+            ? html
+            : target.pathname === "/favicon.svg"
+              ? "<svg></svg>"
+              : "built asset";
       return new Response(body, {
-        headers: { ...secureBuildOutputConfig.routes[0].headers, "content-type": contentType },
+        headers: {
+          ...secureBuildOutputConfig.routes[0].headers,
+          "content-type": contentType,
+          ...(target.pathname === "/api/minidesk/v1/demo" ? { "cache-control": "no-store" } : {}),
+        },
       });
     };
     if (location === "/") {

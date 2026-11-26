@@ -27,8 +27,6 @@ src/
   styles/                      # Global styles and tokens
 tests/                         # Cross-feature and browser tests (T07–T14)
 public/                        # Assets copied unchanged by the build
-api/                           # Previously proposed; purpose to decide in T06
-openapi/                       # Previously proposed schema source; decide in T06
 ```
 
 Keep unit and component tests next to the code they exercise. The `tests/`
@@ -123,5 +121,5 @@ Each feature owns its remote operations; `shared/api` is for domain-neutral
 transport and, after a contract decision, shared types. The mandatory request
 path, layer responsibilities, approved TanStack Query choice, and open schema
 decisions live in [api.md](api.md). Create files only when a real operation needs
-them. The previously proposed top-level `api/` and `openapi/` directories are
-possibilities for T06, not folders to create before that decision.
+them. Treat the API as external. Frontend `src/` must not import from top-level
+`api/` or `server/`. The formal OpenAPI location and generation remain T06 decisions.

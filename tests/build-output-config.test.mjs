@@ -23,8 +23,10 @@ test("rejects artifact routes that could serve a different destination", () => {
   assert.throws(() => assertTrustedBuildOutputConfig(altered), /Unexpected build output/);
 });
 
-test("packages the exact filesystem-first SPA config and accepts the legacy config", () => {
+test("routes MiniDesk API before the filesystem and SPA fallback", () => {
   assert.deepEqual(secureBuildOutputConfig.routes.slice(1), [
+    { src: "^/api/minidesk/v1/(.*)$", dest: "/api/minidesk/v1?__route=$1" },
+    { src: "^/api/.*$", status: 404 },
     { handle: "filesystem" },
     { src: "/(.*)", dest: "/index.html" },
   ]);
