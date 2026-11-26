@@ -65,6 +65,39 @@ test("checks the deployed application and its built assets", async () => {
   ]);
 });
 
+test("checks a static deployment without requesting the MiniDesk API", async () => {
+  const seen = [];
+  await smokeDeployment(
+    url,
+    "",
+    async (target) => {
+      seen.push(target.pathname);
+      const contentType = target.pathname.endsWith(".js")
+        ? "text/javascript"
+        : target.pathname.endsWith(".css")
+          ? "text/css"
+          : target.pathname.endsWith(".svg")
+            ? "image/svg+xml"
+            : "text/html";
+      return new Response(
+        target.pathname === "/" || target.pathname === "/unknown-page"
+          ? html
+          : target.pathname.endsWith(".svg")
+            ? "<svg></svg>"
+            : "built asset",
+        {
+          headers: {
+            ...secureBuildOutputConfig.routes[0].headers,
+            "content-type": contentType,
+          },
+        },
+      );
+    },
+    "static",
+  );
+  assert.equal(seen.includes("/api/minidesk/v1/demo"), false);
+});
+
 test("deep-link redirects must preserve the requested path", async () => {
   for (const location of ["/unknown-page", "/"]) {
     let deepRequests = 0;

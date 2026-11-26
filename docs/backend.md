@@ -16,14 +16,7 @@ To protect the free demo, writes are limited to 120 per minute and 10,000 per ge
 
 ## Local setup
 
-Use Node 24 and the repository's pnpm version. Create a Neon project and copy its pooled and direct Postgres connection strings into an ignored `.env.local` at the repository root:
-
-```dotenv
-DATABASE_URL=postgresql://...pooled...
-DATABASE_DIRECT_URL=postgresql://...direct...
-```
-
-Keep both values out of Git, browser code, and chat. Then run:
+Use Node 24 and the repository's pnpm version. Create the primary `.env.local` and separate `.env.preview.local` exactly as described in the [first-time setup guide](agent-tooling-setup.md#minidesk-database-environment). Keep connection strings out of Git, browser code, and chat. Then run:
 
 ```powershell
 pnpm install --frozen-lockfile
@@ -46,6 +39,6 @@ The API listens on `127.0.0.1:3100`; Vite proxies `/api` to it so browser calls 
 
 Set the server-side environment variable `DATABASE_URL` in both Vercel projects. Production uses the **pooled** connection string for Neon's primary branch. Preview must use the **pooled** connection string for a separate Neon `preview` branch; do not give PR deployments the production database credential. A Preview branch created before the relational migration needs `pnpm run db:migrate` run against that branch's direct URL before its first deployment; a branch created afterward inherits the new tables. Apply each pooled value to the environment used by its project and redeploy after a value changes. Do not set a `VITE_` database variable. `DATABASE_DIRECT_URL` is needed only when running the migration outside Vercel.
 
-For an existing Preview branch, put only its **direct** Neon connection string in an ignored `.env.preview.local` file at the repository root, as `DATABASE_DIRECT_URL=...`, then run `node --env-file=.env.preview.local scripts/migrate-minidesk.mjs`. Keep the primary branch's `.env.local` unchanged. The migration is versioned and safe to rerun. It replaces the old temporary MiniDesk dataset on that branch and does not touch other projects' tables.
+For an existing Preview branch, put only its **direct** Neon connection string in an ignored `.env.preview.local` file at the repository root, as `DATABASE_DIRECT_URL=...`. In PowerShell, run `Remove-Item Env:DATABASE_DIRECT_URL -ErrorAction SilentlyContinue` before `node --env-file=.env.preview.local scripts/migrate-minidesk.mjs`; Node otherwise prefers an inherited shell value over the file. Keep the primary branch's `.env.local` unchanged. The migration is versioned and safe to rerun. It replaces the old temporary MiniDesk dataset on that branch and does not touch other projects' tables.
 
-CI builds the Vite frontend and bundles the Node 24 Function into Vercel Build Output API format. The deploy workflow accepts only the expected static and MiniDesk Function artifact shape. Routes send `/api/minidesk/v1/*` to the Function before the static-file and SPA fallback. Existing production and Preview deployment protection settings remain the project's deployment policy. This repository contains only MiniDesk API routes; future projects require separate route and ownership decisions.
+CI builds the Vite frontend and bundles the Node 24 Function into Vercel Build Output API format. The deploy workflow accepts only the expected static and MiniDesk Function artifact shape. Routes send `/api/minidesk/v1/*` to the Function before the static-file and SPA fallback. Before a PR's Function artifact can deploy with Preview secrets, a repository writer must add an exact PR comment `/approve-preview <40-character-commit-SHA>` for the current head commit. A new commit requires a new approval. The trusted deploy code on `main` checks the commenter's current repository permission and the PR head again before deployment. Existing production and Preview deployment protection settings remain the project's deployment policy. This repository contains only MiniDesk API routes; future projects require separate route and ownership decisions.

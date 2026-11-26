@@ -9,6 +9,30 @@ This is the single installation guide for a new MiniDesk checkout. Once setup is
 3. This project uses Node.js 24 and pins pnpm 12.21.0 in `package.json`. Install [Node.js 24](https://nodejs.org/en/download) or select it through [Vite+ environment management](https://viteplus.dev/guide/env). From the repository root, run `vp env current` and confirm Node.js 24; Vite+ resolves the pinned pnpm version.
 4. From the repository root, run `vp install --frozen-lockfile`, then `vp dev` to start the app.
 
+## MiniDesk database environment
+
+The frontend can start without database credentials. To run the demo API locally, create these two separate, Git-ignored files in the repository root. Use connection strings from the matching Neon branch; never commit or paste the values into chat.
+
+| Local file           | Neon branch               | Required entries                                                | Used for                               |
+| -------------------- | ------------------------- | --------------------------------------------------------------- | -------------------------------------- |
+| `.env.local`         | Primary                   | `DATABASE_URL` = pooled URL; `DATABASE_DIRECT_URL` = direct URL | Local API and primary-branch migration |
+| `.env.preview.local` | Separate `preview` branch | `DATABASE_DIRECT_URL` = direct URL only                         | Preview-branch migration               |
+
+Example file shapes (replace the placeholders with your own Neon connection strings):
+
+```dotenv
+# .env.local
+DATABASE_URL=postgresql://...primary-pooled...
+DATABASE_DIRECT_URL=postgresql://...primary-direct...
+```
+
+```dotenv
+# .env.preview.local
+DATABASE_DIRECT_URL=postgresql://...preview-direct...
+```
+
+Run `pnpm run db:migrate` for the primary branch. To migrate the Preview branch in PowerShell, first run `Remove-Item Env:DATABASE_DIRECT_URL -ErrorAction SilentlyContinue`, then `node --env-file=.env.preview.local scripts/migrate-minidesk.mjs`; Node gives an inherited shell variable precedence over the file. Keep `.env.local` unchanged when migrating Preview. For hosted deployments, set only the server-side `DATABASE_URL`: the primary **pooled** URL in the Production Vercel project and the Preview branch's **pooled** URL in the Preview Vercel project. The direct URL is not needed in Vercel. See [backend operation](backend.md) for API startup, reset, and deployment details.
+
 ## Local commit tools
 
 1. Install [Gitleaks](https://github.com/gitleaks/gitleaks/releases) by extracting the binary for your platform to a directory on `PATH`. Open a new terminal and check `gitleaks version`.

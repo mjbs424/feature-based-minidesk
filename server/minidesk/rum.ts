@@ -15,7 +15,12 @@ function validEvent(value: unknown, context: Context): value is RumEvent {
     !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(event.eventId)
   )
     return false;
-  if (!routes.includes(String(event.route)) || typeof event.occurredAt !== "string") return false;
+  if (
+    typeof event.route !== "string" ||
+    !routes.includes(event.route) ||
+    typeof event.occurredAt !== "string"
+  )
+    return false;
   const at = new Date(event.occurredAt);
   if (
     !Number.isFinite(at.getTime()) ||
@@ -56,16 +61,17 @@ export function ingest(context: Context, body: Record<string, unknown>): Result 
   let rejected = 0;
   const seen = new Set(context.state.rumEvents.map((event) => event.eventId));
   for (const candidate of body.events as unknown[]) {
-    if (
-      !validEvent(candidate, context) ||
-      seen.has(candidate.eventId) ||
-      context.state.rumEvents.length >= 5000
-    ) {
+    if (!validEvent(candidate, context)) {
       rejected++;
       continue;
     }
-    seen.add(candidate.eventId);
-    context.state.rumEvents.push(candidate);
+    const event = { ...candidate, eventId: candidate.eventId.toLowerCase() };
+    if (seen.has(event.eventId) || context.state.rumEvents.length >= 5000) {
+      rejected++;
+      continue;
+    }
+    seen.add(event.eventId);
+    context.state.rumEvents.push(event);
     accepted++;
   }
   return ok({ accepted, rejected }, 202);

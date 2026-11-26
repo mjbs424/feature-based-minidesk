@@ -15,8 +15,22 @@ const legacyBuildOutputConfig = {
   ],
 };
 
+// The trusted deploy workflow runs from main while PR artifacts can use either
+// the existing static shape or the MiniDesk Function shape.
+export const staticBuildOutputConfig = {
+  ...legacyBuildOutputConfig,
+  routes: [
+    ...legacyBuildOutputConfig.routes,
+    { handle: "filesystem" },
+    { src: "/(.*)", dest: "/index.html" },
+  ],
+};
+// Keep this export static until the trusted main deployment has been upgraded.
+// The existing main CI packaging script imports it directly.
+export const secureBuildOutputConfig = staticBuildOutputConfig;
+
 // Send only MiniDesk API paths to the Function, then serve static files and SPA routes.
-export const secureBuildOutputConfig = {
+export const miniDeskBuildOutputConfig = {
   ...legacyBuildOutputConfig,
   routes: [
     ...legacyBuildOutputConfig.routes,
@@ -29,10 +43,11 @@ export const secureBuildOutputConfig = {
 
 export function assertTrustedBuildOutputConfig(config) {
   const serialized = JSON.stringify(config);
+  if (serialized === JSON.stringify(miniDeskBuildOutputConfig)) return "minidesk";
   if (
-    serialized !== JSON.stringify(secureBuildOutputConfig) &&
-    serialized !== JSON.stringify(legacyBuildOutputConfig)
-  ) {
-    throw new Error("Unexpected build output configuration");
-  }
+    serialized === JSON.stringify(staticBuildOutputConfig) ||
+    serialized === JSON.stringify(legacyBuildOutputConfig)
+  )
+    return "static";
+  throw new Error("Unexpected build output configuration");
 }

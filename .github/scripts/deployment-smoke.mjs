@@ -1,6 +1,7 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { secureBuildOutputConfig } from "./build-output-config.mjs";
+import { readFile } from "node:fs/promises";
+import { assertTrustedBuildOutputConfig, secureBuildOutputConfig } from "./build-output-config.mjs";
 
 export function smokeTarget(event, deploymentUrl) {
   if (event === "push") return "https://feature-based-minidesk.vercel.app/";
@@ -158,7 +159,7 @@ async function checkMiniDeskApi(url, secret, request) {
   checkSecurityHeaders(response, endpoint.pathname);
 }
 
-export async function smokeDeployment(value, secret, request = fetch) {
+export async function smokeDeployment(value, secret, request = fetch, outputKind = "minidesk") {
   const url = deploymentOrigin(value);
   const response = await requestOnOrigin(url, url.origin, secret, request, url.pathname);
   const html = await response.text();
@@ -171,15 +172,18 @@ export async function smokeDeployment(value, secret, request = fetch) {
   checkSecurityHeaders(response, "/");
   await checkDeepLink(url, secret, request);
   await checkStaticIcon(url, secret, request);
-  await checkMiniDeskApi(url, secret, request);
+  if (outputKind === "minidesk") await checkMiniDeskApi(url, secret, request);
   console.log(
-    `Smoke test passed: application page, deep link, static icon, MiniDesk API and ${assetCount} assets`,
+    `Smoke test passed: application page, deep link, static icon${outputKind === "minidesk" ? ", MiniDesk API" : ""} and ${assetCount} assets`,
   );
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
+  const config = JSON.parse(await readFile("bundle/.vercel/output/config.json", "utf8"));
   await smokeDeployment(
     smokeTarget(process.env.RUN_EVENT, process.env.DEPLOYMENT_URL),
     process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+    fetch,
+    assertTrustedBuildOutputConfig(config),
   );
 }

@@ -102,7 +102,7 @@ export async function start(
       body.taskId === null || body.taskId === undefined
         ? null
         : typeof body.taskId === "string"
-          ? body.taskId
+          ? body.taskId || bad("taskId", "Invalid task ID")
           : bad("taskId", "Invalid task ID");
     const mark =
       body.completeTaskOnTarget === undefined

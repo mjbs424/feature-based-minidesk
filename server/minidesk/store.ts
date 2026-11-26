@@ -64,7 +64,7 @@ async function resetIfNeeded(start: Date): Promise<void> {
       ON CONFLICT (id) DO NOTHING RETURNING id
     `;
     const rows = await tx`SELECT window_start FROM minidesk_generation WHERE id = 1 FOR UPDATE`;
-    if (iso(rows[0].window_start) !== start.toISOString()) {
+    if (new Date(iso(rows[0].window_start)) < start) {
       // The migration ledger and unrelated projects are outside this reset.
       await tx.unsafe(`TRUNCATE TABLE
         minidesk_focus_segments, minidesk_focus_sessions, minidesk_tasks,
@@ -353,7 +353,7 @@ export async function withState<T>(
       state,
       datasetId: String(row.dataset_id),
       windowStart: iso(row.window_start),
-      resetAt: nextReset(start),
+      resetAt: nextReset(new Date(iso(row.window_start))),
       now,
     });
     await persistState(tx, before, state);

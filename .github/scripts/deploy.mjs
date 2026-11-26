@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { removePrDeployments, vercel } from "./cleanup.mjs";
 import { assertTrustedBuildOutputConfig } from "./build-output-config.mjs";
+import { authorizePreviewDeployment } from "./preview-authorization.mjs";
 
 const repo = process.env.GITHUB_REPOSITORY;
 const [owner, name] = (repo ?? "").split("/");
@@ -68,9 +69,19 @@ if (runEvent === "pull_request") {
 // Accept only the reviewed static and MiniDesk Function Build Output API shape.
 const source = "bundle/.vercel/output";
 const config = JSON.parse(await readFile(`${source}/config.json`, "utf8"));
-assertTrustedBuildOutputConfig(config);
+const outputKind = assertTrustedBuildOutputConfig(config);
+if (runEvent === "pull_request" && outputKind === "minidesk") {
+  await authorizePreviewDeployment(github, manifest.pr, manifest.sha);
+  if (!(await currentPr())) {
+    console.log("PR changed after preview authorization; skipping obsolete preview");
+    process.exit(0);
+  }
+}
 const roots = await readdir(source);
-if (roots.sort().join(",") !== "config.json,functions,static")
+if (
+  roots.sort().join(",") !==
+  (outputKind === "minidesk" ? "config.json,functions,static" : "config.json,static")
+)
   throw new Error("Unexpected build output entries");
 async function validateTree(directory) {
   for (const entry of await readdir(directory)) {
@@ -81,30 +92,32 @@ async function validateTree(directory) {
   }
 }
 await validateTree(`${source}/static`);
-const functions = `${source}/functions`;
-if (
-  (await readdir(functions)).join(",") !== "api" ||
-  (await readdir(`${functions}/api`)).join(",") !== "minidesk" ||
-  (await readdir(`${functions}/api/minidesk`)).join(",") !== "v1.func"
-)
-  throw new Error("Unexpected Function output path");
-const functionFiles = await readdir(`${functions}/api/minidesk/v1.func`);
-if (functionFiles.sort().join(",") !== ".vc-config.json,handler.cjs")
-  throw new Error("Unexpected Function output files");
-await validateTree(`${functions}/api/minidesk/v1.func`);
-const functionConfig = JSON.parse(
-  await readFile(`${functions}/api/minidesk/v1.func/.vc-config.json`, "utf8"),
-);
-if (
-  JSON.stringify(functionConfig) !==
-  JSON.stringify({
-    runtime: "nodejs24.x",
-    handler: "handler.cjs",
-    launcherType: "Nodejs",
-    shouldAddHelpers: false,
-  })
-)
-  throw new Error("Unexpected Function configuration");
+if (outputKind === "minidesk") {
+  const functions = `${source}/functions`;
+  if (
+    (await readdir(functions)).join(",") !== "api" ||
+    (await readdir(`${functions}/api`)).join(",") !== "minidesk" ||
+    (await readdir(`${functions}/api/minidesk`)).join(",") !== "v1.func"
+  )
+    throw new Error("Unexpected Function output path");
+  const functionFiles = await readdir(`${functions}/api/minidesk/v1.func`);
+  if (functionFiles.sort().join(",") !== ".vc-config.json,handler.cjs")
+    throw new Error("Unexpected Function output files");
+  await validateTree(`${functions}/api/minidesk/v1.func`);
+  const functionConfig = JSON.parse(
+    await readFile(`${functions}/api/minidesk/v1.func/.vc-config.json`, "utf8"),
+  );
+  if (
+    JSON.stringify(functionConfig) !==
+    JSON.stringify({
+      runtime: "nodejs24.x",
+      handler: "handler.cjs",
+      launcherType: "Nodejs",
+      shouldAddHelpers: false,
+    })
+  )
+    throw new Error("Unexpected Function configuration");
+}
 await rm(".vercel", { recursive: true, force: true });
 await mkdir(".vercel", { recursive: true });
 await writeFile(
