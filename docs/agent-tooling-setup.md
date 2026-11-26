@@ -39,7 +39,7 @@ Run `pnpm run db:migrate` for the primary branch. To migrate the Preview branch 
 2. Install [uv](https://docs.astral.sh/uv/getting-started/installation/); on Windows, run `winget install --id=astral-sh.uv -e`. Open a new terminal and check `uvx --version`.
 3. Install [Semgrep](https://github.com/semgrep/semgrep#option-2-getting-started-from-the-cli) with `uv tool install semgrep`. On an Intel Mac, use `uv tool install semgrep==1.182.1` instead; newer releases do not ship an Intel macOS scan engine. Check `semgrep --version`. If the command is not found, follow uv's `PATH` instructions and reopen the terminal.
 
-Gitleaks and Semgrep must be on `PATH` for local commits. See [development.md](development.md#check-coverage) for the hook's checks and failure behavior.
+Gitleaks and Semgrep must be on `PATH` for local commits. After installation, Semgrep uses the checked-in [local rules](../.semgrep/rules.yml) and does not download rules for each commit. See [development.md](development.md#check-coverage) for the hook's checks and failure behavior.
 
 ## Agent tools
 

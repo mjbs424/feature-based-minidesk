@@ -20,11 +20,17 @@ test("accepts an exact SHA approval from a current repository writer", async () 
   ]);
 });
 
-test("rejects approval for a different commit or from a reader", async () => {
+test("rejects approval for a different commit from a writer", async () => {
   const github = async (route) =>
     route.startsWith("/issues/")
-      ? [comment(`/approve-preview ${"b".repeat(40)}`), comment(`/approve-preview ${sha}`)]
-      : { permission: "read" };
+      ? [comment(`/approve-preview ${"b".repeat(40)}`)]
+      : { permission: "write" };
+  await assert.rejects(authorizePreviewDeployment(github, 48, sha), /requires a repository writer/);
+});
+
+test("rejects exact-commit approval from a reader", async () => {
+  const github = async (route) =>
+    route.startsWith("/issues/") ? [comment(`/approve-preview ${sha}`)] : { permission: "read" };
   await assert.rejects(authorizePreviewDeployment(github, 48, sha), /requires a repository writer/);
 });
 

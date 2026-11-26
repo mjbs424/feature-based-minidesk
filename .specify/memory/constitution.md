@@ -26,4 +26,4 @@ Apply risk-appropriate tests, browser checks, accessibility review, build and CI
 
 `AGENTS.md` routes to the source documents; each topic guide owns its contract. Keep this constitution a short set of planning principles and pointers, not a parallel copy of `architecture.md` or another guide. Before amending it, compare the proposed rule with the owning guide and actual configuration. Update the owning guide first or in the same change, then keep only the necessary pointer here; resolve any conflict rather than allowing the two versions to diverge. The user's current assignment and the owning guide govern details, and generated specs must remain consistent with them.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-24 | **Last Amended**: 2026-11-24
+**Version**: 1.1.0 | **Ratified**: 2026-11-24 | **Last Amended**: 2026-11-24
