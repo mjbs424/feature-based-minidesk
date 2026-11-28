@@ -1,5 +1,6 @@
 {
   "entry": ["api/minidesk/v1.ts"],
+  "ignorePatterns": ["src/shared/api/generated/**"],
   "health": {
     "ignore": ["api/minidesk/**", "server/minidesk/**"]
   },

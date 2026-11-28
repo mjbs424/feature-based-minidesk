@@ -1,0 +1,603 @@
+paths:
+  /api/minidesk/v1/expenses:
+    get:
+      operationId: listExpenses
+      summary: List expenses
+      parameters:
+        - name: month
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: ^\d{4}-\d{2}$
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: categoryId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Opaque cursor for the same filters and current dataset.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+    post:
+      operationId: createExpense
+      summary: Create expense
+      parameters:
+        - name: X-Minidesk-Dataset-Id
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Current datasetId from GET /api/minidesk/v1/demo.
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Optional retry key, scoped to this route and dataset.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+          headers:
+            Location:
+              description: Created resource URL
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+  /api/minidesk/v1/expenses/summary:
+    get:
+      operationId: getExpenseSummary
+      summary: Get monthly expense summary
+      parameters:
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: ^\d{4}-\d{2}$
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseSummary"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+  /api/minidesk/v1/expenses/categories:
+    get:
+      operationId: getExpenseCategoriesSummary
+      summary: Get monthly expense category totals
+      parameters:
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: ^\d{4}-\d{2}$
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseCategorySummary"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+  /api/minidesk/v1/expenses/{expenseId}:
+    get:
+      operationId: getExpense
+      summary: Get expense
+      parameters:
+        - name: expenseId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+    patch:
+      operationId: updateExpense
+      summary: Update expense
+      parameters:
+        - name: expenseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Minidesk-Dataset-Id
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Current datasetId from GET /api/minidesk/v1/demo.
+        - name: If-Match
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Quoted version, for example "1".
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpensePatch"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+    delete:
+      operationId: deleteExpense
+      summary: Delete expense
+      parameters:
+        - name: expenseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Minidesk-Dataset-Id
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Current datasetId from GET /api/minidesk/v1/demo.
+        - name: If-Match
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Quoted version, for example "1".
+      responses:
+        "204":
+          description: Success
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+  /api/minidesk/v1/budgets/{month}:
+    get:
+      operationId: getBudget
+      summary: Get monthly budget
+      parameters:
+        - name: month
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^\d{4}-\d{2}$
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Budget"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+    put:
+      operationId: putBudget
+      summary: Create or replace monthly budget
+      parameters:
+        - name: month
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^\d{4}-\d{2}$
+        - name: X-Minidesk-Dataset-Id
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Current datasetId from GET /api/minidesk/v1/demo.
+        - name: If-Match
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Required only when replacing an existing budget.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BudgetInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Budget"
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Budget"
+          headers:
+            Location:
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+components:
+  schemas:
+    Expense:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        description:
+          type: string
+        notes:
+          anyOf:
+            - type: string
+            - type: "null"
+        amountMinor:
+          type: integer
+        currency:
+          type: string
+          const: USD
+        categoryId:
+          type: string
+        occurredOn:
+          type: string
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+      required:
+        - id
+        - description
+        - notes
+        - amountMinor
+        - currency
+        - categoryId
+        - occurredOn
+        - createdAt
+        - updatedAt
+        - version
+    ExpenseInput:
+      type: object
+      additionalProperties: false
+      properties:
+        description:
+          type: string
+          minLength: 1
+          maxLength: 160
+        notes:
+          anyOf:
+            - type: string
+              maxLength: 2000
+            - type: "null"
+        amountMinor:
+          type: integer
+          minimum: 1
+          maximum: 999999999
+        categoryId:
+          type: string
+        occurredOn:
+          type: string
+          format: date
+      required:
+        - description
+        - amountMinor
+        - categoryId
+        - occurredOn
+    ExpensePatch:
+      type: object
+      additionalProperties: false
+      properties:
+        description:
+          type: string
+          minLength: 1
+          maxLength: 160
+        notes:
+          anyOf:
+            - type: string
+              maxLength: 2000
+            - type: "null"
+        amountMinor:
+          type: integer
+          minimum: 1
+          maximum: 999999999
+        categoryId:
+          type: string
+        occurredOn:
+          type: string
+          format: date
+      required: []
+    ExpenseList:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Expense"
+        nextCursor:
+          anyOf:
+            - type: string
+            - type: "null"
+      required:
+        - items
+        - nextCursor
+    ExpenseSummary:
+      type: object
+      additionalProperties: false
+      properties:
+        month:
+          type: string
+        currency:
+          type: string
+          const: USD
+        expenseCount:
+          type: integer
+        spentMinor:
+          type: integer
+        budgetMinor:
+          anyOf:
+            - type: integer
+            - type: "null"
+        remainingMinor:
+          anyOf:
+            - type: integer
+            - type: "null"
+        percentOfBudget:
+          anyOf:
+            - type: integer
+            - type: "null"
+      required:
+        - month
+        - currency
+        - expenseCount
+        - spentMinor
+        - budgetMinor
+        - remainingMinor
+        - percentOfBudget
+    ExpenseCategorySummary:
+      type: object
+      additionalProperties: false
+      properties:
+        month:
+          type: string
+        currency:
+          type: string
+          const: USD
+        spentMinor:
+          type: integer
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              categoryId:
+                type: string
+              amountMinor:
+                type: integer
+              expenseCount:
+                type: integer
+              percentOfSpending:
+                type: integer
+            required:
+              - categoryId
+              - amountMinor
+              - expenseCount
+              - percentOfSpending
+      required:
+        - month
+        - currency
+        - spentMinor
+        - items
+    Budget:
+      type: object
+      additionalProperties: false
+      properties:
+        month:
+          type: string
+        amountMinor:
+          type: integer
+        currency:
+          type: string
+          const: USD
+        updatedAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+      required:
+        - month
+        - amountMinor
+        - currency
+        - updatedAt
+        - version
+    BudgetInput:
+      type: object
+      additionalProperties: false
+      properties:
+        amountMinor:
+          type: integer
+          minimum: 0
+          maximum: 999999999
+      required:
+        - amountMinor

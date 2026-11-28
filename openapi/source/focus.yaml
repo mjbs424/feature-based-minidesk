@@ -1,0 +1,580 @@
+paths:
+  /api/minidesk/v1/focus/active:
+    get:
+      operationId: getActiveFocus
+      summary: Get active focus session
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActiveFocus"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+  /api/minidesk/v1/focus/priority-tasks:
+    get:
+      operationId: getPriorityTasks
+      summary: Get focus priority tasks
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PriorityTasks"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+  /api/minidesk/v1/focus/sessions:
+    get:
+      operationId: listFocusSessions
+      summary: List completed focus sessions
+      parameters:
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Opaque cursor for the same filters and current dataset.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FocusList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+    post:
+      operationId: startFocus
+      summary: Start focus session
+      parameters:
+        - name: X-Minidesk-Dataset-Id
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Current datasetId from GET /api/minidesk/v1/demo.
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Optional retry key, scoped to this route and dataset.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FocusInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FocusSession"
+          headers:
+            Location:
+              description: Created resource URL
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+  /api/minidesk/v1/focus/sessions/{id}/pause:
+    post:
+      operationId: pauseFocus
+      summary: pause focus session
+      description: Send an empty JSON object as the request body.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Minidesk-Dataset-Id
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Current datasetId from GET /api/minidesk/v1/demo.
+        - name: If-Match
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Quoted version, for example "1".
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Optional retry key, scoped to this route and dataset.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties: {}
+              required: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FocusSession"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+  /api/minidesk/v1/focus/sessions/{id}/resume:
+    post:
+      operationId: resumeFocus
+      summary: resume focus session
+      description: Send an empty JSON object as the request body.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Minidesk-Dataset-Id
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Current datasetId from GET /api/minidesk/v1/demo.
+        - name: If-Match
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Quoted version, for example "1".
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Optional retry key, scoped to this route and dataset.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties: {}
+              required: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FocusSession"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+  /api/minidesk/v1/focus/sessions/{id}/finish:
+    post:
+      operationId: finishFocus
+      summary: finish focus session
+      description: Send an empty JSON object as the request body.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Minidesk-Dataset-Id
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Current datasetId from GET /api/minidesk/v1/demo.
+        - name: If-Match
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Quoted version, for example "1".
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Optional retry key, scoped to this route and dataset.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties: {}
+              required: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FocusSession"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+  /api/minidesk/v1/focus/sessions/{id}:
+    delete:
+      operationId: discardFocus
+      summary: Discard active focus session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Minidesk-Dataset-Id
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Current datasetId from GET /api/minidesk/v1/demo.
+        - name: If-Match
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Quoted version, for example "1".
+      responses:
+        "204":
+          description: Success
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+  /api/minidesk/v1/focus/summary:
+    get:
+      operationId: getFocusSummary
+      summary: Get focus summary for UTC date
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FocusSummary"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+components:
+  schemas:
+    FocusSession:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum:
+            - running
+            - paused
+            - completed
+        taskId:
+          anyOf:
+            - type: string
+            - type: "null"
+        taskTitle:
+          anyOf:
+            - type: string
+            - type: "null"
+        completeTaskOnTarget:
+          type: boolean
+        taskCompletionApplied:
+          type: boolean
+        startedAt:
+          type: string
+          format: date-time
+        endedAt:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+        targetSeconds:
+          type: integer
+          const: 1500
+        elapsedSeconds:
+          type: integer
+          minimum: 0
+          maximum: 1500
+        remainingSeconds:
+          type: integer
+          minimum: 0
+          maximum: 1500
+        serverNow:
+          type: string
+          format: date-time
+      required:
+        - id
+        - status
+        - taskId
+        - taskTitle
+        - completeTaskOnTarget
+        - taskCompletionApplied
+        - startedAt
+        - endedAt
+        - createdAt
+        - updatedAt
+        - version
+        - targetSeconds
+        - elapsedSeconds
+        - remainingSeconds
+        - serverNow
+    ActiveFocus:
+      type: object
+      additionalProperties: false
+      properties:
+        session:
+          anyOf:
+            - $ref: "#/components/schemas/FocusSession"
+            - type: "null"
+        serverNow:
+          type: string
+          format: date-time
+      required:
+        - session
+        - serverNow
+    PriorityTasks:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              id:
+                type: string
+              title:
+                type: string
+              categoryId:
+                type: string
+              dueDate:
+                anyOf:
+                  - type: string
+                    format: date
+                  - type: "null"
+              isCompleted:
+                type: boolean
+                const: false
+            required:
+              - id
+              - title
+              - categoryId
+              - dueDate
+              - isCompleted
+          maxItems: 3
+      required:
+        - items
+    FocusInput:
+      type: object
+      additionalProperties: false
+      properties:
+        taskId:
+          anyOf:
+            - type: string
+            - type: "null"
+        completeTaskOnTarget:
+          type: boolean
+      required: []
+    FocusList:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/FocusSession"
+        nextCursor:
+          anyOf:
+            - type: string
+            - type: "null"
+      required:
+        - items
+        - nextCursor
+    FocusSummary:
+      type: object
+      additionalProperties: false
+      properties:
+        date:
+          type: string
+          format: date
+        focusedSeconds:
+          type: integer
+        completedSessionCount:
+          type: integer
+        generationFocusedSeconds:
+          type: integer
+      required:
+        - date
+        - focusedSeconds
+        - completedSessionCount
+        - generationFocusedSeconds

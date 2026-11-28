@@ -2,7 +2,7 @@
 
 MiniDesk is a small React and TypeScript project with four planned pages: To-do, Expenses, Focus, and Real-user monitoring. These pages give us practical features for exploring a feature-based frontend structure. The routes currently show coming-soon pages, with To-do at `/`; feature behavior remains future work.
 
-> **Important: demo backend only.** We put a small backend in this repository solely to give the frontend real feature data. It was built quickly for MiniDesk, with limited engineering effort, and is not a permanent backend architecture or a best-practice example to copy into other projects. Do not use this implementation as a template for production or other projects. Top-level `api/`, `server/`, and the backend-specific scripts in `scripts/` are backend-only; frontend feature code belongs under `src/` and must treat the API as an external HTTP service. See [backend operation](docs/backend.md) only when running or deploying this demo service. The frontend contract will be settled separately through T06/OpenAPI.
+> **Important: demo backend only.** We put a small backend in this repository solely to give the frontend real feature data. It was built quickly for MiniDesk, with limited engineering effort, and is not a permanent backend architecture or a best-practice example to copy into other projects. Do not use this implementation as a template for production or other projects. Top-level `api/`, `server/`, and the backend-specific scripts in `scripts/` are backend-only; frontend feature code belongs under `src/` and must treat the API as an external HTTP service. See [backend operation](docs/backend.md) only when running or deploying this demo service. Frontend features use the [OpenAPI contract](openapi/minidesk.v1.json).
 
 The application foundation uses Vite+, React Compiler, Tailwind CSS 4, and shadcn/ui theme tokens. UI components will be added when features need them.
 
@@ -49,4 +49,4 @@ GitHub Actions checks pull requests and pushes to `main`, then deploys the verif
 
 ## Next steps and AI-assisted development
 
-The [work list](inprogress.md) tracks candidates; the [feature delivery map](docs/feature-delivery.md) owns the order and prerequisites of assigned feature work. Agents start with [AGENTS.md](AGENTS.md), then open only the guides relevant to the current step. The [API guide](docs/api.md) owns unsettled data contracts, and the [agent tooling guide](docs/agent-tooling.md) owns optional skill and MCP use.
+The [work list](inprogress.md) tracks candidates; the [feature delivery map](docs/feature-delivery.md) owns the order and prerequisites of assigned feature work. Agents start with [AGENTS.md](AGENTS.md), then open only the guides relevant to the current step. The [API guide](docs/api.md) owns frontend data flow and remaining feature-level decisions, and the [agent tooling guide](docs/agent-tooling.md) owns optional skill and MCP use.

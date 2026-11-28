@@ -1,10 +1,10 @@
 # MiniDesk product rules and API planning contract
 
-**Status:** Approved product behavior and preliminary HTTP contract, 2026-11-26. T06/OpenAPI will own the formal frontend-facing API contract. This document records the agreed behavior and data needs until each feature has its own Spec Kit spec.
+**Status:** Approved product behavior and preliminary HTTP handoff, 2026-11-26. The [OpenAPI document](../openapi/minidesk.v1.json) owns the formal frontend-facing HTTP shapes. This document records the agreed behavior and data needs until each feature has its own Spec Kit spec.
 
 ## 1. Scope and document ownership
 
-MiniDesk has four frontend routes: `/`, `/expenses`, `/focus`, and `/real-user-monitoring`. The pages are still placeholders; feature specs have not yet been written. Product behavior here is input to those specs. Project phases and task IDs belong to [feature-delivery.md](feature-delivery.md); feature journeys, plans, and executable tasks belong in `specs/<feature>/`; the eventual frontend data contract belongs to T06/OpenAPI. The frontend's HTTP boundary is described in [api.md](api.md). Backend operation and deployment belong to [backend.md](backend.md).
+MiniDesk has four frontend routes: `/`, `/expenses`, `/focus`, and `/real-user-monitoring`. The pages are still placeholders; feature specs have not yet been written. Product behavior here is input to those specs. Project phases and task IDs belong to [feature-delivery.md](feature-delivery.md); feature journeys, plans, and executable tasks belong in `specs/<feature>/`; the frontend HTTP contract is [OpenAPI](../openapi/minidesk.v1.json). The frontend's HTTP boundary is described in [api.md](api.md). Backend operation and deployment belong to [backend.md](backend.md).
 
 The images in `public/` guide the simple To-do, Expenses, and Focus layouts; their example data and decorative controls do not define behavior. Monitoring has no reference image.
 
@@ -42,7 +42,7 @@ The agreed reset interval is **12 hours**. “General” time is interpreted as 
 
 ## 3. MiniDesk HTTP contract shared by the features
 
-The backend handoff uses the **`/api/minidesk/v1/`** JSON API with **no authentication or account context for MiniDesk**. The frontend uses a same-origin relative API base in the approved Vercel deployment, but the frontend API boundary must also support a different origin later without importing server code. The formal OpenAPI source and generation workflow remain T06 decisions. This is a shared public demo: any visitor can change or remove MiniDesk data created by another visitor. Do not use this API for private or important data. Bound request size and rate-limit public writes and telemetry ingestion so the demo remains usable. Public access is scoped to the MiniDesk routes, not implicitly to any future project.
+The backend handoff uses the **`/api/minidesk/v1/`** JSON API with **no authentication or account context for MiniDesk**. The frontend uses a same-origin relative API base in the approved Vercel deployment, but the frontend API boundary must also support a different origin later without importing server code. The formal OpenAPI source and generation workflow are linked from [api.md](api.md). This is a shared public demo: any visitor can change or remove MiniDesk data created by another visitor. Do not use this API for private or important data. Bound request size and rate-limit public writes and telemetry ingestion so the demo remains usable. Public access is scoped to the MiniDesk routes, not implicitly to any future project.
 
 - Request/response media type: `application/json`; UTF-8. Do not use floating-point numbers for money.
 - IDs: opaque strings; clients must not parse them. All timestamps: RFC 3339 UTC strings such as `2026-11-26T10:00:00Z`. Calendar dates: `YYYY-MM-DD` in UTC; times: `HH:mm` in 24-hour UTC time.
@@ -275,4 +275,4 @@ P75 is the nearest-rank 75th percentile over valid samples in the current 12-hou
 
 ## Document handoff
 
-Use the rules and provisional endpoint/data shapes above as planning input. [feature-delivery.md](feature-delivery.md) owns the project phases and task IDs. Each approved feature's Spec Kit `spec.md`, `plan.md`, and `tasks.md` will own its behavior, implementation plan, and work sequence. T06/OpenAPI will establish the formal frontend-facing HTTP contract; frontend code will consume that artifact through the boundary in [api.md](api.md). Backend operation and deployment are documented separately in [backend.md](backend.md).
+Use the rules above as product planning input and the [OpenAPI document](../openapi/minidesk.v1.json) for frontend HTTP shapes. [feature-delivery.md](feature-delivery.md) owns the project phases and task IDs. Each approved feature's Spec Kit `spec.md`, `plan.md`, and `tasks.md` will own its behavior, implementation plan, and work sequence. Frontend code consumes OpenAPI through the boundary in [api.md](api.md). Backend operation and deployment are documented separately in [backend.md](backend.md).
