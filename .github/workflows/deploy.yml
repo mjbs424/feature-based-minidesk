@@ -29,7 +29,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "24"
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: vercel-static-build
           run-id: ${{ github.event.workflow_run.id }}
@@ -166,7 +166,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "24"
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: vercel-static-build
           run-id: ${{ github.event.workflow_run.id }}
@@ -174,7 +174,7 @@ jobs:
           path: bundle
       - name: Download Lighthouse reports
         if: needs.lighthouse.result == 'success'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: lighthouse-preview-reports
           path: .lighthouseci
