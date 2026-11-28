@@ -6,12 +6,6 @@ Task IDs remain stable when rows move or are removed. Tasks within a section may
 
 Select remaining work when its prerequisites and real use cases are clear.
 
-## Architecture and development foundations
-
-| ID  | Open task                                                       | Expected outcome                                                                                                                                 |
-| --- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| T06 | [OpenAPI TypeScript](https://openapi-ts.dev/) and the API layer | Choose a schema source, type generation, schema change checks, and the API call contract. Keep the choice open until a real API contract exists. |
-
 ## Testing strategy and experience quality
 
 | ID  | Open task                                                                                                                | Expected outcome                                                                                                                                                                      |

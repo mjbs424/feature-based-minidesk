@@ -14,7 +14,7 @@ Read the approved feature spec when one exists. For a new feature, use the [feat
 
 ## 2. Verify
 
-Read [development.md](development.md) for the current commands, pre-commit hook, CI, Preview, and check coverage. Run its full local check set before handoff, plus any checks required by the changed surface. Inspect Fallow and React Doctor findings and dependency/security results where applicable. Record results and unverified risks without claiming that a check covers more than its configuration does.
+Read [development.md](development.md) for the current commands, pre-commit hook, CI, Preview, and check coverage. Run its full local check set before handoff, plus any checks required by the changed surface. Before saying changes are ready to commit, run `pnpm exec react-doctor . --scope files --base HEAD --yes --no-score --blocking error` and the hook-equivalent `pnpm exec fallow audit --base HEAD --gate all`; `pnpm run audit` alone does not reproduce that gate. Fix actionable findings and rerun the failing check. Inspect dependency/security results and record any check that could not run. Compare staged and working-tree versions of task files so later edits are not mistaken for verified staged content; the user's staged-file hook remains the final check after staging.
 
 ## 3. Self-review and correction
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://react.doctor/schema/config.json",
   "ignore": {
-    "files": [".agents/skills/**", ".local-tools/**"]
+    "files": [".agents/skills/**", ".local-tools/**", "src/shared/api/generated/**"]
   }
 }

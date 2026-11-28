@@ -18,7 +18,7 @@ src/
       model/                    # Feature-specific types and domain logic
       lib/                      # Feature-specific utilities, when needed
   shared/
-    api/                       # HTTP transport; generated types after T06 decision
+    api/                       # Generated HTTP client, SDK, and OpenAPI types
     ui/                        # Reusable, domain-neutral components when needed
     lib/                       # Domain-neutral utilities
     config/                    # Shared configuration
@@ -117,9 +117,9 @@ When changing import-boundary rules or their include scope, audit affected impor
 
 ## API ownership
 
-Each feature owns its remote operations; `shared/api` is for domain-neutral
-transport and, after a contract decision, shared types. The mandatory request
-path, layer responsibilities, approved TanStack Query choice, and open schema
-decisions live in [api.md](api.md). Create files only when a real operation needs
+Each feature owns its remote operations; `shared/api/generated` holds the generated
+HTTP client, SDK, and shared types. The mandatory request path, layer
+responsibilities, TanStack Query choice, and pending feature decisions live in
+[api.md](api.md). Create feature files only when a real operation needs
 them. Treat the API as external. Frontend `src/` must not import from top-level
-`api/` or `server/`. The formal OpenAPI location and generation remain T06 decisions.
+`api/` or `server/`. The frontend-facing OpenAPI document is [here](../openapi/minidesk.v1.json).

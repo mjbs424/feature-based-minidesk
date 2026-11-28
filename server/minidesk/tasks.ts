@@ -44,7 +44,7 @@ export function categories(
   if (items.filter((item) => !item.isDefault).length >= 20) conflict();
   const item: Category = { id: randomUUID(), label, isDefault: false };
   items.push(item);
-  return created(item, `/api/minidesk/v1/${kind}-categories/${item.id}`);
+  return ok(item, 201);
 }
 
 function validateFields(

@@ -1,0 +1,248 @@
+paths:
+  /api/minidesk/v1/rum/events:
+    post:
+      operationId: ingestRumEvents
+      summary: Submit anonymous telemetry batch
+      description: The batch envelope must contain 1–20 events. Invalid individual events are counted as rejected in a 202 response; malformed batch shape returns 400. Valid events must occur within the current dataset window or at most five minutes in the future.
+      parameters:
+        - name: X-Minidesk-Dataset-Id
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Current datasetId from GET /api/minidesk/v1/demo.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RumBatch"
+      responses:
+        "202":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RumAccepted"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+  /api/minidesk/v1/rum/overview:
+    get:
+      operationId: getRumOverview
+      summary: Get current demo telemetry
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RumOverview"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "503":
+          $ref: "#/components/responses/DatabaseUnavailable"
+components:
+  schemas:
+    RumBatch:
+      type: object
+      additionalProperties: false
+      properties:
+        events:
+          type: array
+          description: Each item is accepted or rejected independently. PageViewEvent and WebVitalEvent describe accepted shapes.
+          items:
+            description: An individual candidate; validation happens per event.
+          minItems: 1
+          maxItems: 20
+      required:
+        - events
+    PageViewEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          const: page_view
+        route:
+          type: string
+          enum:
+            - /
+            - /expenses
+            - /focus
+            - /real-user-monitoring
+        occurredAt:
+          type: string
+          format: date-time
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
+          description: UTC ISO timestamp with exactly three fractional digits.
+      required:
+        - eventId
+        - kind
+        - route
+        - occurredAt
+    WebVitalEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          const: web_vital
+        route:
+          type: string
+          enum:
+            - /
+            - /expenses
+            - /focus
+            - /real-user-monitoring
+        occurredAt:
+          type: string
+          format: date-time
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
+          description: UTC ISO timestamp with exactly three fractional digits.
+        metric:
+          type: string
+          enum:
+            - LCP
+            - INP
+            - CLS
+        value:
+          type: number
+          minimum: 0
+      oneOf:
+        - properties:
+            metric:
+              const: LCP
+            value:
+              maximum: 60000
+        - properties:
+            metric:
+              const: INP
+            value:
+              maximum: 10000
+        - properties:
+            metric:
+              const: CLS
+            value:
+              maximum: 10
+      required:
+        - eventId
+        - kind
+        - route
+        - occurredAt
+        - metric
+        - value
+    RumAccepted:
+      type: object
+      additionalProperties: false
+      properties:
+        accepted:
+          type: integer
+        rejected:
+          type: integer
+      required:
+        - accepted
+        - rejected
+    RumOverview:
+      type: object
+      additionalProperties: false
+      properties:
+        windowStart:
+          type: string
+          format: date-time
+        resetAt:
+          type: string
+          format: date-time
+        timeZone:
+          type: string
+          const: UTC
+        pageViews:
+          type: integer
+        hourly:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              hourStart:
+                type: string
+                format: date-time
+              pageViews:
+                type: integer
+            required:
+              - hourStart
+              - pageViews
+        routes:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              route:
+                type: string
+              pageViews:
+                type: integer
+            required:
+              - route
+              - pageViews
+        vitals:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              metric:
+                type: string
+                enum:
+                  - LCP
+                  - INP
+                  - CLS
+              sampleCount:
+                type: integer
+              p75:
+                anyOf:
+                  - type: number
+                  - type: "null"
+            required:
+              - metric
+              - sampleCount
+              - p75
+      required:
+        - windowStart
+        - resetAt
+        - timeZone
+        - pageViews
+        - hourly
+        - routes
+        - vitals
