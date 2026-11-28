@@ -7,15 +7,15 @@ import { createClient } from "@hey-api/openapi-ts";
 import { parse } from "yaml";
 
 // Resolve inputs and outputs relative to this script, not the caller's directory.
-const root = new URL("../../", import.meta.url);
-const schemaFile = new URL("../../openapi/minidesk.v1.json", import.meta.url);
-const clientDir = fileURLToPath(new URL("../../src/shared/api/generated/", import.meta.url));
+const root = new URL("../", import.meta.url);
+const schemaFile = new URL("./minidesk.v1.json", import.meta.url);
+const clientDir = fileURLToPath(new URL("../src/shared/api/generated/", import.meta.url));
 const features = ["core", "tasks", "expenses", "focus", "rum"];
 
 // Core owns shared OpenAPI fields; each feature adds its paths and schemas.
 const fragments = await Promise.all(
   features.map(async (feature) =>
-    parse(await readFile(new URL(`../../openapi/source/${feature}.yaml`, import.meta.url), "utf8")),
+    parse(await readFile(new URL(`./source/${feature}.yaml`, import.meta.url), "utf8")),
   ),
 );
 const [core] = fragments;
