@@ -28,7 +28,7 @@ When a script or command changes, audit this command list and the affected check
 
 ## Check coverage
 
-For full local verification, run `vp check`, `vp run test`, `vp run build`, `vp run audit`, and `vp run doctor`. Run the security audit script when dependencies change. Inspect reports; Fallow's configured audit does not automatically gate every kind of finding.
+For full local verification, run `pnpm run api:check`, `vp check`, `vp run test`, `vp run build`, `pnpm run package:vercel`, `vp run audit`, and `vp run doctor`. Run the security audit script when dependencies change. Inspect reports; Fallow's configured audit does not automatically gate every kind of finding.
 
 The bundle-size check measures built JavaScript and CSS, not every static asset. The current Lighthouse check visits only the root To-do route, so it does not establish performance coverage for the other feature routes. Interpret both reports within these limits.
 

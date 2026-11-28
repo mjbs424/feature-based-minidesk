@@ -329,6 +329,7 @@ components:
         - version
     TaskInput:
       type: object
+      description: Omitted optional schedule fields start as null. Set startTime and endTime together with dueDate; endTime must be later on that same date.
       additionalProperties: false
       properties:
         title:
@@ -350,15 +351,18 @@ components:
         startTime:
           anyOf:
             - type: string
+              pattern: ^([01]\d|2[0-3]):[0-5]\d$
             - type: "null"
         endTime:
           anyOf:
             - type: string
+              pattern: ^([01]\d|2[0-3]):[0-5]\d$
             - type: "null"
       required:
         - title
     TaskPatch:
       type: object
+      description: Omitted fields retain stored values; null clears an optional date or time. After merging, startTime and endTime must both be set or both be null. Set times require dueDate, and endTime must be later than startTime on that date.
       additionalProperties: false
       properties:
         title:
@@ -380,10 +384,12 @@ components:
         startTime:
           anyOf:
             - type: string
+              pattern: ^([01]\d|2[0-3]):[0-5]\d$
             - type: "null"
         endTime:
           anyOf:
             - type: string
+              pattern: ^([01]\d|2[0-3]):[0-5]\d$
             - type: "null"
         isCompleted:
           type: boolean

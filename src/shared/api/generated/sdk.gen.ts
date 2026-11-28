@@ -249,7 +249,7 @@ export const getFocusSummary = <ThrowOnError extends boolean = false>(options: O
 /**
  * Submit anonymous telemetry batch
  *
- * Invalid individual events are counted as rejected; malformed batch shape returns 400.
+ * The batch envelope must contain 1–20 events. Invalid individual events are counted as rejected in a 202 response; malformed batch shape returns 400. Valid events must occur within the current dataset window or at most five minutes in the future.
  */
 export const ingestRumEvents = <ThrowOnError extends boolean = false>(options: Options<IngestRumEventsData, ThrowOnError>): RequestResult<IngestRumEventsResponses, IngestRumEventsErrors, ThrowOnError> => (options.client ?? client).post<IngestRumEventsResponses, IngestRumEventsErrors, ThrowOnError>({
   url: '/api/minidesk/v1/rum/events',

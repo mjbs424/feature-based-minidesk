@@ -439,6 +439,7 @@ components:
             - type: "null"
         completeTaskOnTarget:
           type: boolean
+          description: When true, taskId must identify a selected task.
         taskCompletionApplied:
           type: boolean
         startedAt:
@@ -536,6 +537,7 @@ components:
         - items
     FocusInput:
       type: object
+      description: Completing a task at the target requires a selected task.
       additionalProperties: false
       properties:
         taskId:
@@ -545,6 +547,19 @@ components:
         completeTaskOnTarget:
           type: boolean
       required: []
+      if:
+        properties:
+          completeTaskOnTarget:
+            const: true
+        required:
+          - completeTaskOnTarget
+      then:
+        properties:
+          taskId:
+            type: string
+            minLength: 1
+        required:
+          - taskId
     FocusList:
       type: object
       additionalProperties: false

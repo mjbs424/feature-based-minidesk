@@ -137,14 +137,6 @@
                   "$ref": "#/components/schemas/Category"
                 }
               }
-            },
-            "headers": {
-              "Location": {
-                "description": "Created resource URL",
-                "schema": {
-                  "type": "string"
-                }
-              }
             }
           },
           "400": {
@@ -255,14 +247,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Category"
-                }
-              }
-            },
-            "headers": {
-              "Location": {
-                "description": "Created resource URL",
-                "schema": {
-                  "type": "string"
                 }
               }
             }
@@ -707,8 +691,7 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}$"
+              "$ref": "#/components/schemas/Month"
             }
           },
           {
@@ -716,7 +699,9 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 160,
+              "pattern": "\\S"
             }
           },
           {
@@ -874,8 +859,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}$"
+              "$ref": "#/components/schemas/Month"
             }
           }
         ],
@@ -927,8 +911,7 @@
             "in": "query",
             "required": true,
             "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}$"
+              "$ref": "#/components/schemas/Month"
             }
           }
         ],
@@ -1171,8 +1154,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}$"
+              "$ref": "#/components/schemas/Month"
             }
           }
         ],
@@ -1222,8 +1204,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}$"
+              "$ref": "#/components/schemas/Month"
             }
           },
           {
@@ -1953,7 +1934,7 @@
       "post": {
         "operationId": "ingestRumEvents",
         "summary": "Submit anonymous telemetry batch",
-        "description": "Invalid individual events are counted as rejected; malformed batch shape returns 400.",
+        "description": "The batch envelope must contain 1–20 events. Invalid individual events are counted as rejected in a 202 response; malformed batch shape returns 400. Valid events must occur within the current dataset window or at most five minutes in the future.",
         "parameters": [
           {
             "name": "X-Minidesk-Dataset-Id",
@@ -2337,6 +2318,7 @@
       },
       "TaskInput": {
         "type": "object",
+        "description": "Omitted optional schedule fields start as null. Set startTime and endTime together with dueDate; endTime must be later on that same date.",
         "additionalProperties": false,
         "properties": {
           "title": {
@@ -2372,7 +2354,8 @@
           "startTime": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
               },
               {
                 "type": "null"
@@ -2382,7 +2365,8 @@
           "endTime": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
               },
               {
                 "type": "null"
@@ -2394,6 +2378,7 @@
       },
       "TaskPatch": {
         "type": "object",
+        "description": "Omitted fields retain stored values; null clears an optional date or time. After merging, startTime and endTime must both be set or both be null. Set times require dueDate, and endTime must be later than startTime on that date.",
         "additionalProperties": false,
         "properties": {
           "title": {
@@ -2429,7 +2414,8 @@
           "startTime": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
               },
               {
                 "type": "null"
@@ -2439,7 +2425,8 @@
           "endTime": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
               },
               {
                 "type": "null"
@@ -2496,6 +2483,10 @@
           }
         },
         "required": ["today", "upcoming", "completed", "total"]
+      },
+      "Month": {
+        "type": "string",
+        "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
       },
       "Expense": {
         "type": "object",
@@ -2814,7 +2805,8 @@
             ]
           },
           "completeTaskOnTarget": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "When true, taskId must identify a selected task."
           },
           "taskCompletionApplied": {
             "type": "boolean"
@@ -2947,6 +2939,7 @@
       },
       "FocusInput": {
         "type": "object",
+        "description": "Completing a task at the target requires a selected task.",
         "additionalProperties": false,
         "properties": {
           "taskId": {
@@ -2963,7 +2956,24 @@
             "type": "boolean"
           }
         },
-        "required": []
+        "required": [],
+        "if": {
+          "properties": {
+            "completeTaskOnTarget": {
+              "const": true
+            }
+          },
+          "required": ["completeTaskOnTarget"]
+        },
+        "then": {
+          "properties": {
+            "taskId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": ["taskId"]
+        }
       },
       "FocusList": {
         "type": "object",
@@ -3014,15 +3024,9 @@
         "properties": {
           "events": {
             "type": "array",
+            "description": "Each item is accepted or rejected independently. PageViewEvent and WebVitalEvent describe accepted shapes.",
             "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/PageViewEvent"
-                },
-                {
-                  "$ref": "#/components/schemas/WebVitalEvent"
-                }
-              ]
+              "description": "An individual candidate; validation happens per event."
             },
             "minItems": 1,
             "maxItems": 20
@@ -3048,7 +3052,9 @@
           },
           "occurredAt": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+            "description": "UTC ISO timestamp with exactly three fractional digits."
           }
         },
         "required": ["eventId", "kind", "route", "occurredAt"]
@@ -3071,7 +3077,9 @@
           },
           "occurredAt": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+            "description": "UTC ISO timestamp with exactly three fractional digits."
           },
           "metric": {
             "type": "string",
@@ -3082,6 +3090,38 @@
             "minimum": 0
           }
         },
+        "oneOf": [
+          {
+            "properties": {
+              "metric": {
+                "const": "LCP"
+              },
+              "value": {
+                "maximum": 60000
+              }
+            }
+          },
+          {
+            "properties": {
+              "metric": {
+                "const": "INP"
+              },
+              "value": {
+                "maximum": 10000
+              }
+            }
+          },
+          {
+            "properties": {
+              "metric": {
+                "const": "CLS"
+              },
+              "value": {
+                "maximum": 10
+              }
+            }
+          }
+        ],
         "required": ["eventId", "kind", "route", "occurredAt", "metric", "value"]
       },
       "RumAccepted": {

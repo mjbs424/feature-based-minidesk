@@ -58,6 +58,16 @@ test("Focus rejects an empty task ID as a validation error", async () => {
   );
 });
 
+test("category creation returns the item without an unusable member Location", async () => {
+  const { categories } = await loadServerModule("server/minidesk/tasks.ts");
+  const ctx = context();
+  ctx.state.taskCategories = [];
+  const result = categories(ctx, "task", "POST", { label: "Personal" });
+  assert.equal(result.status, 201);
+  assert.equal(result.location, undefined);
+  assert.equal(result.body.label, "Personal");
+});
+
 test("a list cursor expires when a shared list changes between pages", async () => {
   const { parsePage } = await loadServerModule("server/minidesk/http.ts");
   const initial = [{ id: "a" }, { id: "b" }, { id: "c" }];

@@ -3,7 +3,7 @@ paths:
     post:
       operationId: ingestRumEvents
       summary: Submit anonymous telemetry batch
-      description: Invalid individual events are counted as rejected; malformed batch shape returns 400.
+      description: The batch envelope must contain 1–20 events. Invalid individual events are counted as rejected in a 202 response; malformed batch shape returns 400. Valid events must occur within the current dataset window or at most five minutes in the future.
       parameters:
         - name: X-Minidesk-Dataset-Id
           in: header
@@ -75,10 +75,9 @@ components:
       properties:
         events:
           type: array
+          description: Each item is accepted or rejected independently. PageViewEvent and WebVitalEvent describe accepted shapes.
           items:
-            oneOf:
-              - $ref: "#/components/schemas/PageViewEvent"
-              - $ref: "#/components/schemas/WebVitalEvent"
+            description: An individual candidate; validation happens per event.
           minItems: 1
           maxItems: 20
       required:
@@ -103,6 +102,8 @@ components:
         occurredAt:
           type: string
           format: date-time
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
+          description: UTC ISO timestamp with exactly three fractional digits.
       required:
         - eventId
         - kind
@@ -128,6 +129,8 @@ components:
         occurredAt:
           type: string
           format: date-time
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
+          description: UTC ISO timestamp with exactly three fractional digits.
         metric:
           type: string
           enum:
@@ -137,6 +140,22 @@ components:
         value:
           type: number
           minimum: 0
+      oneOf:
+        - properties:
+            metric:
+              const: LCP
+            value:
+              maximum: 60000
+        - properties:
+            metric:
+              const: INP
+            value:
+              maximum: 10000
+        - properties:
+            metric:
+              const: CLS
+            value:
+              maximum: 10
       required:
         - eventId
         - kind

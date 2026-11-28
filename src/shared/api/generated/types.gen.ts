@@ -52,6 +52,9 @@ export type Task = {
   version: number;
 };
 
+/**
+ * Omitted optional schedule fields start as null. Set startTime and endTime together with dueDate; endTime must be later on that same date.
+ */
 export type TaskInput = {
   title: string;
   notes?: string | null;
@@ -61,6 +64,9 @@ export type TaskInput = {
   endTime?: string | null;
 };
 
+/**
+ * Omitted fields retain stored values; null clears an optional date or time. After merging, startTime and endTime must both be set or both be null. Set times require dueDate, and endTime must be later than startTime on that date.
+ */
 export type TaskPatch = {
   title?: string;
   notes?: string | null;
@@ -83,6 +89,8 @@ export type TaskSummary = {
   completed: number;
   total: number;
 };
+
+export type Month = string;
 
 export type Expense = {
   id: string;
@@ -157,6 +165,9 @@ export type FocusSession = {
   status: 'running' | 'paused' | 'completed';
   taskId: string | null;
   taskTitle: string | null;
+  /**
+   * When true, taskId must identify a selected task.
+   */
   completeTaskOnTarget: boolean;
   taskCompletionApplied: boolean;
   startedAt: string;
@@ -185,6 +196,9 @@ export type PriorityTasks = {
   }>;
 };
 
+/**
+ * Completing a task at the target requires a selected task.
+ */
 export type FocusInput = {
   taskId?: string | null;
   completeTaskOnTarget?: boolean;
@@ -203,20 +217,38 @@ export type FocusSummary = {
 };
 
 export type RumBatch = {
-  events: Array<PageViewEvent | WebVitalEvent>;
+  /**
+   * Each item is accepted or rejected independently. PageViewEvent and WebVitalEvent describe accepted shapes.
+   */
+  events: Array<unknown>;
 };
 
 export type PageViewEvent = {
   eventId: string;
   kind: 'page_view';
   route: '/' | '/expenses' | '/focus' | '/real-user-monitoring';
+  /**
+   * UTC ISO timestamp with exactly three fractional digits.
+   */
   occurredAt: string;
 };
 
-export type WebVitalEvent = {
+export type WebVitalEvent = ({
+  metric?: 'LCP';
+  value?: unknown;
+} | {
+  metric?: 'INP';
+  value?: unknown;
+} | {
+  metric?: 'CLS';
+  value?: unknown;
+}) & {
   eventId: string;
   kind: 'web_vital';
   route: '/' | '/expenses' | '/focus' | '/real-user-monitoring';
+  /**
+   * UTC ISO timestamp with exactly three fractional digits.
+   */
   occurredAt: string;
   metric: 'LCP' | 'INP' | 'CLS';
   value: number;
@@ -899,7 +931,7 @@ export type ListExpensesData = {
   body?: never;
   path?: never;
   query?: {
-    month?: string;
+    month?: Month;
     q?: string;
     categoryId?: string;
     limit?: number;
@@ -1024,7 +1056,7 @@ export type GetExpenseSummaryData = {
   body?: never;
   path?: never;
   query: {
-    month: string;
+    month: Month;
   };
   url: '/api/minidesk/v1/expenses/summary';
 };
@@ -1079,7 +1111,7 @@ export type GetExpenseCategoriesSummaryData = {
   body?: never;
   path?: never;
   query: {
-    month: string;
+    month: Month;
   };
   url: '/api/minidesk/v1/expenses/categories';
 };
@@ -1318,7 +1350,7 @@ export type UpdateExpenseResponse = UpdateExpenseResponses[keyof UpdateExpenseRe
 export type GetBudgetData = {
   body?: never;
   path: {
-    month: string;
+    month: Month;
   };
   query?: never;
   url: '/api/minidesk/v1/budgets/{month}';
@@ -1383,7 +1415,7 @@ export type PutBudgetData = {
     'If-Match'?: string;
   };
   path: {
-    month: string;
+    month: Month;
   };
   query?: never;
   url: '/api/minidesk/v1/budgets/{month}';

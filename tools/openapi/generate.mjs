@@ -43,11 +43,20 @@ for (const [index, fragment] of fragments.entries()) {
 
 // Catch broken local references before handing the merged document to Hey API.
 function checkRef(reference) {
-  const [hash, section, ...path] = reference.split("/");
-  const target = path.reduce((part, key) => part?.[key], schema.components);
-  if (hash !== "#" || section !== "components" || !target) {
+  if (!reference.startsWith("#/")) {
     throw new Error(`Unresolved contract reference: ${reference}`);
   }
+  reference
+    .slice(2)
+    .split("/")
+    .reduce((target, token) => {
+      if (/~(?![01])/.test(token)) throw new Error(`Invalid contract reference: ${reference}`);
+      const key = token.replace(/~1/g, "/").replace(/~0/g, "~");
+      if (!Object.hasOwn(Object(target), key)) {
+        throw new Error(`Unresolved contract reference: ${reference}`);
+      }
+      return target[key];
+    }, schema);
 }
 
 function checkRefs(value) {
