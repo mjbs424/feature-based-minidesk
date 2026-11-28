@@ -93,11 +93,12 @@ async function files(directory, prefix = "") {
 // Check mode generates into a temporary directory; generate mode writes the client in place.
 const check = process.argv.includes("--check");
 const output = check ? await mkdtemp(join(tmpdir(), "minidesk-hey-check-")) : clientDir;
+const normalized = (content) => content.replace(/\r\n/g, "\n");
 try {
   await createClient({ input: schema, output });
   if (check) {
     // CI fails if either the standalone OpenAPI JSON or Hey API output has drifted.
-    if ((await readFile(schemaFile, "utf8").catch(() => "")) !== result.stdout) {
+    if (normalized(await readFile(schemaFile, "utf8").catch(() => "")) !== result.stdout) {
       throw new Error("OpenAPI JSON is stale; run pnpm run api:generate");
     }
     const expected = await files(output);
@@ -108,8 +109,8 @@ try {
         await Promise.all(
           expected.map(
             async (name) =>
-              (await readFile(join(output, name), "utf8")) ===
-              (await readFile(join(clientDir, name), "utf8")),
+              normalized(await readFile(join(output, name), "utf8")) ===
+              normalized(await readFile(join(clientDir, name), "utf8")),
           ),
         )
       ).includes(false)
